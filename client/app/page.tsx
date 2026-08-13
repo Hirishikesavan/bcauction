@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import api from '@/lib/api';
-import { useAuth, getRoleRedirect } from '@/hooks/useAuth';
 import { fmt } from '@/lib/utils';
 import BeastLogo from '@/components/beast/BeastLogo';
 import GoldParticles from '@/components/beast/GoldParticles';
@@ -23,7 +22,6 @@ import { ForgeLogoReveal } from '@/components/forge/ForgeLogoReveal';
 import { ForgeHero } from '@/components/forge/ForgeHero';
 
 export default function HomePage() {
-  const { user, loading } = useAuth();
   const [auctions, setAuctions] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, active: 0, players: 0, teams: 0 });
 
@@ -95,23 +93,10 @@ export default function HomePage() {
               className="px-4 py-2 rounded-lg text-xs font-heading uppercase tracking-wider text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all border border-border/40 hover:border-primary/30">
               Plans
             </Link>
-            {user ? (
-              <Link href={getRoleRedirect(user.role || '')}
-                className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-heading uppercase tracking-wider glow-gold hover:scale-[1.02] transition-all">
-                Dashboard →
-              </Link>
-            ) : (
-              <>
-                <Link href="/login"
-                  className="px-4 py-2 rounded-lg border border-primary/30 text-xs font-heading uppercase tracking-wider text-primary hover:bg-primary/10 transition-all">
-                  Login
-                </Link>
-                <Link href="/register"
-                  className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-heading uppercase tracking-wider glow-gold hover:scale-[1.02] transition-all">
-                  Register Free
-                </Link>
-              </>
-            )}
+            <Link href="/dashboard/team-owner"
+              className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-heading uppercase tracking-wider glow-gold hover:scale-[1.02] transition-all">
+              Dashboard →
+            </Link>
           </div>
         </nav>
 
@@ -138,23 +123,14 @@ export default function HomePage() {
             </p>
 
             <div className="flex flex-wrap gap-4 justify-center">
-              {user ? (
-                <Link href={getRoleRedirect(user.role || '')}
-                  className="px-10 py-4 rounded-xl bg-primary text-primary-foreground font-heading uppercase tracking-wider text-base glow-gold hover:scale-[1.02] transition-all">
-                  Go to Dashboard →
-                </Link>
-              ) : (
-                <>
-                  <Link href="/register"
-                    className="px-10 py-4 rounded-xl bg-primary text-primary-foreground font-heading uppercase tracking-wider text-base glow-gold hover:scale-[1.02] transition-all">
-                    Get Started Free
-                  </Link>
-                  <Link href="/auctions"
-                    className="px-10 py-4 rounded-xl border border-primary/40 text-primary font-heading uppercase tracking-wider text-base hover:bg-primary/10 transition-all">
-                    View Live Auctions
-                  </Link>
-                </>
-              )}
+              <Link href="/dashboard/team-owner"
+                className="px-10 py-4 rounded-xl bg-primary text-primary-foreground font-heading uppercase tracking-wider text-base glow-gold hover:scale-[1.02] transition-all">
+                Go to Dashboard →
+              </Link>
+              <Link href="/auctions"
+                className="px-10 py-4 rounded-xl border border-primary/40 text-primary font-heading uppercase tracking-wider text-base hover:bg-primary/10 transition-all">
+                View Live Auctions
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -337,8 +313,7 @@ export default function HomePage() {
           <div className="flex items-center gap-6 text-xs font-heading uppercase tracking-wider text-muted-foreground">
             <Link href="/auctions" className="hover:text-primary transition-colors">Auctions</Link>
             <Link href="/#pricing"  className="hover:text-primary transition-colors">Plans</Link>
-            <Link href="/login"    className="hover:text-primary transition-colors">Login</Link>
-            <Link href="/register" className="hover:text-primary transition-colors">Register</Link>
+            <Link href="/dashboard/team-owner" className="hover:text-primary transition-colors">Dashboard</Link>
           </div>
           <div className="flex items-center gap-4">
             <TermsModal trigger={<span className="font-display text-muted-foreground text-xs hover:text-primary cursor-pointer transition-colors">Terms &amp; Conditions</span>} />
