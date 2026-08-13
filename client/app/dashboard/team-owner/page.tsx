@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import AuthGuard from '@/components/shared/AuthGuard';
 import api, { imgUrl } from '@/lib/api';
 import { getSocket } from '@/lib/socket';
 import { fmt, roleIcons, roleColors } from '@/lib/utils';
@@ -601,8 +600,7 @@ export default function TeamOwnerDashboard() {
   );
 
   return (
-    <AuthGuard roles={['team_owner']}>
-      <div className="min-h-screen relative" style={{background:'hsl(0 0% 0%)'}}>
+    <div className="min-h-screen relative" style={{background:'hsl(0 0% 0%)'}}>
         {/* Team owner bg image */}
         <div style={{position:'fixed',inset:0,backgroundImage:"url('/bg-team-owner.png')",backgroundSize:'cover',backgroundPosition:'center top',opacity:0.35,pointerEvents:'none',zIndex:0}}/>
         <div style={{position:'fixed',inset:0,background:'linear-gradient(180deg,hsl(0 0% 0% / 0.45) 0%,hsl(0 0% 0% / 0.6) 60%,hsl(0 0% 0% / 0.75) 100%)',pointerEvents:'none',zIndex:0}}/>
@@ -1451,6 +1449,6 @@ export default function TeamOwnerDashboard() {
           )}
         </div>
       </div>
-    </AuthGuard>
+    </div>
   );
 }
