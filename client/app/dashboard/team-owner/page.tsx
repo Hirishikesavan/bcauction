@@ -55,6 +55,9 @@ export default function TeamOwnerDashboard() {
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
 
+  // Skip authentication - allow direct access
+  const currentUser = user || { name: 'Team Owner', id: 'demo-user' };
+
   // join-code flow
   const [code, setCode] = useState('');
   const [previewAuction, setPreviewAuction] = useState<any>(null);
