@@ -251,7 +251,7 @@ export default function PosterGenerator() {
                     <select value={selTeam?._id || ''} onChange={e => setSelTeam(teams.find(t => t._id === e.target.value))}
                       className={INP} style={{ background: 'hsl(0 0% 8%)' }}>
                       <option value="">-- Select Team --</option>
-                      {teams.map(t => <option key={t._id} value={t._id} style={{ background: 'hsl(0 0% 8%)' }}>{t.name}</option>)}}
+                      {teams.map(t => <option key={t._id} value={t._id} style={{ background: 'hsl(0 0% 8%)' }}>{t.name}</option>)}
                     </select>
                   </div>
                   <div>
