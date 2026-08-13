@@ -1,0 +1,119 @@
+'use client';
+import { Clapperboard, Trophy, Eye, Check } from 'lucide-react';
+
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { authClient } from '@/lib/auth-client';
+import { getRoleRedirect } from '@/hooks/useAuth';
+import GoldParticles from '@/components/beast/GoldParticles';
+import FireSparkles  from '@/components/beast/FireSparkles';
+import BeastLogo     from '@/components/beast/BeastLogo';
+
+const ROLES = [
+  { id: 'organizer',  label: 'Organizer',  Icon: Clapperboard, desc: 'Create and manage cricket auctions', color: '#f59e0b' },
+  { id: 'team_owner', label: 'Team Owner', Icon: Trophy,       desc: 'Bid and buy players for your team',  color: '#60a5fa' },
+  { id: 'viewer',     label: 'Viewer',     Icon: Eye,          desc: 'Watch auctions live in real-time',   color: '#34d399' },
+];
+
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api$/, '');
+
+export default function SelectRolePage() {
+  const [selected, setSelected] = useState('');
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState('');
+
+  const handleContinue = async () => {
+    if (!selected) { setError('Please select a role to continue'); return; }
+    setLoading(true); setError('');
+    try {
+      console.log(' [SelectRole] Setting role:', selected);
+      const s    = await authClient.getSession();
+      const user = s?.data?.user as any;
+      if (!user) { window.location.href = '/login?error=no-session'; return; }
+
+      console.log(' [SelectRole] User session:', user.email, 'current role:', user.role);
+
+      const res = await fetch(`${API_BASE}/api/user/set-role`, {
+        method:      'POST',
+        headers:     { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body:        JSON.stringify({ role: selected }),
+      });
+
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || 'Failed to save role');
+      }
+
+      console.log(' [SelectRole] Role set successfully:', selected);
+      // Store role in localStorage — AuthGuard reads this while session cache refreshes
+      localStorage.setItem(`role_set_${user.id}`, selected);
+      localStorage.setItem('pending_role', selected);
+      console.log(' [SelectRole] localStorage updated:', selected);
+
+      const redirectUrl = getRoleRedirect(selected);
+      console.log(' [SelectRole] Redirecting to:', redirectUrl);
+      // HARD redirect — destroys React session cache so AuthGuard reads fresh session
+      window.location.href = redirectUrl;
+    } catch (err: any) {
+      console.error(' [SelectRole] Error:', err);
+      setError(err.message || 'Failed to set role. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative min-h-screen flex items-center justify-center bg-background overflow-hidden">
+      <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: "url('/stadium-bg.jpg')" }} />
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center,transparent 20%,hsl(0 0% 0% / 0.95) 70%)' }} />
+      <GoldParticles /><FireSparkles />
+
+      <div className="relative z-10 w-full max-w-md mx-4 py-10">
+        <div className="flex justify-center mb-6"><BeastLogo size={80} glow href="/" /></div>
+
+        <div className="text-center mb-8">
+          <h1 className="font-heading text-3xl uppercase tracking-[0.12em] text-foreground mb-2">
+            Choose Your <span className="text-gradient-gold">Role</span>
+          </h1>
+          <p className="font-display text-muted-foreground text-sm">How will you use Beast Cricket Auction?</p>
+        </div>
+
+        <div className="bg-glass-premium rounded-xl p-7 gold-edge">
+          {error && (
+            <div className="mb-5 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-xs font-heading">{error}</div>
+          )}
+          <div className="space-y-3 mb-6">
+            {ROLES.map((r, i) => (
+              <motion.button key={r.id}
+                initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.08 }}
+                onClick={() => { setSelected(r.id); setError(''); }}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all ${selected === r.id ? '' : 'border-border/40 hover:border-border/70 bg-secondary/10'}`}
+                style={selected === r.id ? { borderColor: r.color, background: r.color + '14' } : {}}>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                    style={{ background: selected === r.id ? r.color + '25' : 'hsla(222,30%,16%,0.5)' }}>
+                    <r.Icon size={28} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-heading text-base uppercase tracking-wider text-foreground">{r.label}</div>
+                    <div className="font-display text-muted-foreground text-xs mt-0.5">{r.desc}</div>
+                  </div>
+                  {selected === r.id && (
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: r.color, color: '#000' }}>
+                      <Check size={12} />
+                    </div>
+                  )}
+                </div>
+              </motion.button>
+            ))}
+          </div>
+          <button onClick={handleContinue} disabled={!selected || loading}
+            className="w-full py-3.5 rounded-lg bg-primary text-primary-foreground font-heading uppercase tracking-wider text-sm glow-gold hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+            {loading ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Setting up...</> : ' Continue →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

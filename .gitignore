@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.local
+.env.production
+.env.development
+.next/
+dist/
+build/
+**/.env
+**/.env.local
+**/.env.production
+**/.env.development

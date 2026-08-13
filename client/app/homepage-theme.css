@@ -1,0 +1,66 @@
+/* ════════════════════════════════════════════════════════════════════════
+   HOMEPAGE THEME — ported from flow-mirror-suite
+   Scoped: only imported by /organizer-home and /team-owner-home pages.
+   Reuses the same navy + gold brand palette already used elsewhere in
+   Beast Cricket, just exposed under the variable names the ported
+   homepage markup expects (--gold, --navy, --navy-deep, --navy-card).
+   ════════════════════════════════════════════════════════════════════════ */
+
+.bc-homepage {
+  --gold: hsl(45 100% 51%);
+  --navy-deep: hsl(0 0% 0%);
+  --navy: hsl(0 0% 0%);
+  --navy-card: hsl(0 0% 5%);
+
+  background-color: var(--navy-deep);
+  color: #fafaf5;
+  min-height: 100vh;
+}
+
+.bc-homepage .card-navy {
+  background-color: var(--navy);
+  border: 1px solid color-mix(in srgb, var(--gold) 25%, transparent);
+  border-radius: 12px;
+}
+
+.bc-homepage .btn-gold {
+  background-color: var(--gold);
+  color: var(--navy-deep);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 8px;
+  transition: filter 0.2s ease, transform 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.bc-homepage .btn-gold-hover:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.bc-homepage .btn-outline-gold {
+  background: transparent;
+  color: #fafaf5;
+  border: 1px solid color-mix(in srgb, var(--gold) 70%, transparent);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.bc-homepage .btn-outline-gold:hover {
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+}
+
+.bc-homepage h1,
+.bc-homepage h2,
+.bc-homepage h3,
+.bc-homepage h4 {
+  font-family: 'Oswald', 'Inter', sans-serif;
+  letter-spacing: 0.01em;
+}
