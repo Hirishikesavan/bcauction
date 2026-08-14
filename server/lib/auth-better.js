@@ -8,6 +8,12 @@ const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || "change-me-in-production",
   baseURL: process.env.BACKEND_URL || "http://localhost:5000",
   basePath: "/api/auth",
+  trustedOrigins: [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:3001",
+    process.env.FRONTEND_URL,
+  ].filter(Boolean),
   
   socialProviders: {
     google: {

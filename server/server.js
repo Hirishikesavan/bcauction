@@ -29,6 +29,7 @@ const allowedOrigins = [...new Set([
   'http://localhost:5173',
   'http://localhost:3001',
   process.env.FRONTEND_URL,
+  'https://beast-cricket-frontend-production.up.railway.app',
 ].filter(Boolean))];
 
 if (isProd) {
@@ -36,6 +37,7 @@ if (isProd) {
 }
 
 console.log('🌐 Allowed CORS origins:', allowedOrigins);
+console.log('🌐 FRONTEND_URL env var:', process.env.FRONTEND_URL);
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -182,9 +184,13 @@ const _adminRoleEnforce = async (req, res, next) => {
 // ── API Routes ──────────────────────────────
 // Apply admin role enforcement middleware to ALL API routes
 app.use('/api', _adminRoleEnforce);
-// Better Auth handles /api/auth/* automatically via its basePath configuration
-// Do NOT mount legacy auth router at /api/auth as it conflicts with Better Auth
-app.use('/api/user', require('./routes/auth')); // Mount legacy auth routes at /api/user for update-role endpoint
+
+// Mount Better Auth handler - this exposes /api/auth/* endpoints
+const { auth } = require('./lib/auth-better');
+app.use(auth.handler);
+
+// Mount legacy auth routes at /api/user for update-role endpoint
+app.use('/api/user', require('./routes/auth'));
 app.use('/api/auctions', require('./routes/auctions'));
 app.use('/api/teams',    require('./routes/teams'));
 app.use('/api/admin',    require('./routes/admin'));
