@@ -426,8 +426,6 @@ function OrganizerDashboard() {
       const newAuction = r.data.auction;
       setAuctions(p => [newAuction, ...p]);
       setSel(newAuction);
-      // Refresh package to show updated count
-      fetchPackage();
       toast.success('Auction created!');
       setTab('players');
       resetAForm();
@@ -671,20 +669,15 @@ function OrganizerDashboard() {
               <div className="text-[8px] text-muted-foreground mt-1">auctions used</div>
             </div>
           )}
-          {!orgPackage && !isAdmin && (
-            <button onClick={() => setTab('package')} className="mx-3 mt-2 p-2.5 rounded-lg text-[10px] font-heading uppercase tracking-wider text-center border border-yellow-500/40 text-yellow-400 hover:bg-yellow-500/10 transition-all flex items-center justify-center gap-1.5">
-              <Zap size={14} aria-hidden="true" /> Buy Package
-            </button>
-          )}
+          {/* Buy Package button removed - Beast Cricket now operates as a completely free, fully unlocked platform */}
 
           <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+            {/* Package and payment navigation removed - Beast Cricket now operates as a completely free, fully unlocked platform */}
             {([
               { id: 'auctions', icon: Gavel, label: 'My Auctions' },
               { id: 'create', icon: editAuction ? Pencil : PlusCircle, label: editAuction ? 'Edit Auction' : 'Create Auction' },
               { id: 'players', icon: Users, label: 'Players' },
               { id: 'teams', icon: Shield, label: 'Teams' },
-              { id: 'package', icon: Package, label: 'My Package' },
-              { id: 'payment-settings', icon: CreditCard, label: 'Payment Setup' },
               { id: 'reports', icon: FileBarChart, label: 'Reports' },
             ] as any[]).map(n => (
               <button key={n.id} onClick={() => { setTab(n.id); if (n.id !== 'create') setEditAuction(null); }}
@@ -757,25 +750,7 @@ function OrganizerDashboard() {
           <div className="relative p-7">
             <div className="mb-4"><BackButton href="/organizer-home" label="Organizer Home" /></div>
             <NextStepBanner />
-            {/* ── PLAN FEATURE LOCK BANNER (admin bypass) ── */}
-            {orgPackage && !bannerDismissed && !isAdmin && (
-              <PackageBanner
-                orgPackage={orgPackage}
-                onUpgrade={() => setTab('package')}
-                onDismiss={() => setBannerDismissed(true)}
-              />
-            )}
-            {orgPackage && bannerDismissed && !isAdmin && (
-              <div className="mb-4 flex items-center gap-3 px-4 py-2 rounded-xl border" style={{ background: PACKAGES_INFO[orgPackage.packageType]?.color + '08', borderColor: PACKAGES_INFO[orgPackage.packageType]?.color + '30' }}>
-                <Medal size={16} style={{ color: PACKAGES_INFO[orgPackage.packageType]?.color }} aria-hidden="true" />
-                <span className="font-heading text-xs uppercase tracking-wider flex-1" style={{ color: PACKAGES_INFO[orgPackage.packageType]?.color }}>{PACKAGES_INFO[orgPackage.packageType]?.name} Plan</span>
-                <span className="text-muted-foreground text-xs font-display">{orgPackage.auctionsAllowed >= 999 ? '∞' : Math.max(0, orgPackage.auctionsAllowed - orgPackage.auctionsUsed)} auctions remaining</span>
-                <button onClick={() => setTab('package')} className="text-xs font-heading uppercase tracking-wider px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground transition-all">
-                  {orgPackage.packageType !== 'elite' ? <span className="inline-flex items-center gap-1">Upgrade <ChevronUp size={10} /></span> : 'Plan'}
-                </button>
-              </div>
-            )}
-            // Package warning removed - Beast Cricket now operates as a completely free, fully unlocked platform
+            {/* Package banner removed - Beast Cricket now operates as a completely free, fully unlocked platform */}
 
             {tab === 'auctions' && (
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
@@ -786,8 +761,6 @@ function OrganizerDashboard() {
                   </div>
                   <button onClick={() => { setEditAuction(null); setTab('create'); }} className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-heading uppercase tracking-wider text-xs glow-gold hover:scale-[1.02] transition-all">+ Create Auction</button>
                 </div>
-
-                // Package warning removed - Beast Cricket now operates as a completely free, fully unlocked platform
 
                 {auctions.length === 0 ? (
                   <div className="text-center py-24 bg-glass-navy rounded-xl border-gold-subtle">
@@ -929,15 +902,7 @@ function OrganizerDashboard() {
 
                 {auctionPayStep === 'form' && (
                   <div className="max-w-2xl">
-                    {/* Package quota warning (admin bypass) */}
-                    {!editAuction && orgPackage && !isAdmin && (
-                      <AuctionPackageNotice
-                        pkgType={orgPackage.packageType}
-                        onUpgrade={() => setTab('package')}
-                      />
-                    )}
-                    // Package required warning removed - Beast Cricket now operates as a completely free, fully unlocked platform
-                    // Platform fee UI removed - Beast Cricket now operates as a completely free, fully unlocked platform
+                    {/* Package notice removed - Beast Cricket now operates as a completely free, fully unlocked platform */}
 
                     <div className="bg-glass-premium rounded-xl p-7 gold-edge border-gold-subtle">
                       <form onSubmit={saveAuction} className="space-y-4">
@@ -952,101 +917,72 @@ function OrganizerDashboard() {
                           <div><label className={LBL}>RTM Cards / Team</label><input type="number" value={aForm.rtmPerTeam} onChange={e => setAForm(p => ({ ...p, rtmPerTeam: e.target.value }))} className={INP} min="0" max="5" /></div>
                         </div>
 
-                        {/* ── FEE SETTINGS (Pro/Elite only) ── */}
-                        {isPro ? (
-                          <div className="space-y-3">
-                            {/* Player Registration Fee */}
-                            <div className="p-4 rounded-xl border" style={{ background: 'hsla(142,70%,45%,0.07)', borderColor: 'hsla(142,70%,45%,0.3)' }}>
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="font-heading text-sm uppercase tracking-wider text-green-400 flex items-center gap-1.5"><Users size={14} aria-hidden="true" /> Player Registration Fee</div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                  <input type="checkbox" checked={aForm.registrationFeeEnabled}
-                                    onChange={e => setAForm(p => ({ ...p, registrationFeeEnabled: e.target.checked }))}
-                                    className="sr-only peer" />
-                                  <div className="w-10 h-6 bg-secondary/50 peer-focus:ring-0 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500" />
-                                </label>
-                              </div>
-                              <p className="text-xs text-muted-foreground font-display mb-3">Players pay this fee when submitting registration. Money goes directly to your UPI/Bank — Beast Cricket takes 0%.</p>
-                              {aForm.registrationFeeEnabled && (
-                                <div>
-                                  <label className={LBL}>Fee Amount (₹)</label>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-muted-foreground font-bold">₹</span>
-                                    <input type="number" value={aForm.registrationFee}
-                                      onChange={e => setAForm(p => ({ ...p, registrationFee: e.target.value }))}
-                                      className={INP} placeholder="199" min="1" />
-                                  </div>
-                                  <p className="text-[10px] text-green-400 mt-1">
-                                    ₹{parseInt(aForm.registrationFee||'0').toLocaleString('en-IN')} per player → your bank · <button type="button" className="text-primary underline" onClick={() => setTab('payment-settings')}>Setup UPI/Bank →</button>
-                                  </p>
-                                </div>
-                              )}
+                        {/* ── FEE SETTINGS ── */}
+                        <div className="space-y-3">
+                          {/* Player Registration Fee */}
+                          <div className="p-4 rounded-xl border" style={{ background: 'hsla(142,70%,45%,0.07)', borderColor: 'hsla(142,70%,45%,0.3)' }}>
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="font-heading text-sm uppercase tracking-wider text-green-400 flex items-center gap-1.5"><Users size={14} aria-hidden="true" /> Player Registration Fee</div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked={aForm.registrationFeeEnabled}
+                                  onChange={e => setAForm(p => ({ ...p, registrationFeeEnabled: e.target.checked }))}
+                                  className="sr-only peer" />
+                                <div className="w-10 h-6 bg-secondary/50 peer-focus:ring-0 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500" />
+                              </label>
                             </div>
-                            {/* Team Owner Registration Fee */}
-                            <div className="p-4 rounded-xl border" style={{ background: 'hsla(45,100%,51%,0.06)', borderColor: 'hsla(45,100%,51%,0.25)' }}>
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="font-heading text-sm uppercase tracking-wider text-primary flex items-center gap-1.5"><Trophy size={14} aria-hidden="true" /> Team Owner Fee</div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                  <input type="checkbox" checked={aForm.teamOwnerFeeEnabled}
-                                    onChange={e => setAForm(p => ({ ...p, teamOwnerFeeEnabled: e.target.checked }))}
-                                    className="sr-only peer" />
-                                  <div className="w-10 h-6 bg-secondary/50 peer-focus:ring-0 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
-                                </label>
-                              </div>
-                              <p className="text-xs text-muted-foreground font-display mb-3">Team owners pay this fee to join your auction. Money goes directly to your UPI/Bank — Beast Cricket takes 0%.</p>
-                              {aForm.teamOwnerFeeEnabled && (
-                                <div>
-                                  <label className={LBL}>Fee Amount (₹)</label>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-muted-foreground font-bold">₹</span>
-                                    <input type="number" value={aForm.teamOwnerFee}
-                                      onChange={e => setAForm(p => ({ ...p, teamOwnerFee: e.target.value }))}
-                                      className={INP} placeholder="499" min="1" />
-                                  </div>
-                                  <p className="text-[10px] text-primary mt-1">
-                                    ₹{parseInt(aForm.teamOwnerFee||'0').toLocaleString('en-IN')} per team owner → your bank · <button type="button" className="text-primary underline" onClick={() => setTab('payment-settings')}>Setup UPI/Bank →</button>
-                                  </p>
-                                  {!payProfile?.upiId && <p className="text-[10px] text-yellow-400 mt-1 flex items-center gap-1"><AlertTriangle size={11} aria-hidden="true" /> Please set your UPI ID in Payment Settings first</p>}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="p-4 rounded-xl border border-border/30 bg-secondary/10 opacity-75">
-                            <div className="flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground font-display mb-3">Players pay this fee when submitting registration. Money goes directly to your UPI/Bank — Beast Cricket takes 0%.</p>
+                            {aForm.registrationFeeEnabled && (
                               <div>
-                                <div className="font-heading text-sm uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1.5"><Lock size={13} aria-hidden="true" /> Fee Collection</div>
-                                <p className="text-xs text-muted-foreground font-display">Player & Team Owner fee collection requires Pro or Elite plan.</p>
+                                <label className={LBL}>Fee Amount (₹)</label>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-muted-foreground font-bold">₹</span>
+                                  <input type="number" value={aForm.registrationFee}
+                                    onChange={e => setAForm(p => ({ ...p, registrationFee: e.target.value }))}
+                                    className={INP} placeholder="199" min="1" />
+                                </div>
                               </div>
-                              <button type="button" onClick={() => setTab('package')} className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-heading uppercase tracking-wider border border-primary/30 hover:bg-primary/20 transition-all">Upgrade →</button>
-                            </div>
+                            )}
                           </div>
-                        )}
+                          {/* Team Owner Registration Fee */}
+                          <div className="p-4 rounded-xl border" style={{ background: 'hsla(45,100%,51%,0.06)', borderColor: 'hsla(45,100%,51%,0.25)' }}>
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="font-heading text-sm uppercase tracking-wider text-primary flex items-center gap-1.5"><Trophy size={14} aria-hidden="true" /> Team Owner Fee</div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked={aForm.teamOwnerFeeEnabled}
+                                  onChange={e => setAForm(p => ({ ...p, teamOwnerFeeEnabled: e.target.checked }))}
+                                  className="sr-only peer" />
+                                <div className="w-10 h-6 bg-secondary/50 peer-focus:ring-0 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
+                              </label>
+                            </div>
+                            <p className="text-xs text-muted-foreground font-display mb-3">Team owners pay this fee to join your auction. Money goes directly to your UPI/Bank — Beast Cricket takes 0%.</p>
+                            {aForm.teamOwnerFeeEnabled && (
+                              <div>
+                                <label className={LBL}>Fee Amount (₹)</label>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-muted-foreground font-bold">₹</span>
+                                  <input type="number" value={aForm.teamOwnerFee}
+                                    onChange={e => setAForm(p => ({ ...p, teamOwnerFee: e.target.value }))}
+                                    className={INP} placeholder="499" min="1" />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
 
-                        {/* RTM — Pro/Elite only (admin bypass) */}
-                        {isPro ? (
-                          <label className="flex items-center gap-3 cursor-pointer p-3.5 rounded-lg" style={{ background: 'hsla(0,0%,8%,0.5)', border: '1px solid hsl(0 0% 15%)' }}>
-                            <input type="checkbox" checked={aForm.rtmEnabled} onChange={e => setAForm(p => ({ ...p, rtmEnabled: e.target.checked }))} className="w-4 h-4 accent-primary" />
-                            <div>
-                              <div className="font-heading text-sm uppercase tracking-wider text-foreground">Enable RTM (Right to Match)</div>
-                              <div className="text-xs text-muted-foreground font-display mt-0.5">Teams can match winning bid to retain a player</div>
-                            </div>
-                          </label>
-                        ) : (
-                          <div className="flex items-center gap-3 p-3.5 rounded-lg opacity-50 cursor-not-allowed" style={{ background: 'hsla(0,0%,8%,0.5)', border: '1px solid hsl(0 0% 15%)' }}>
-                            <div className="w-4 h-4 rounded border border-border bg-secondary/30" />
-                            <div>
-                              <div className="font-heading text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">RTM (Right to Match) <Lock size={12} aria-hidden="true" /></div>
-                              <div className="text-xs text-muted-foreground font-display mt-0.5">Requires Pro or Elite plan · <button type="button" onClick={() => setTab('package')} className="text-primary underline">Upgrade →</button></div>
-                            </div>
+                        {/* RTM — available to all users */}
+                        <label className="flex items-center gap-3 cursor-pointer p-3.5 rounded-lg" style={{ background: 'hsla(0,0%,8%,0.5)', border: '1px solid hsl(0 0% 15%)' }}>
+                          <input type="checkbox" checked={aForm.rtmEnabled} onChange={e => setAForm(p => ({ ...p, rtmEnabled: e.target.checked }))} className="w-4 h-4 accent-primary" />
+                          <div>
+                            <div className="font-heading text-sm uppercase tracking-wider text-foreground">Enable RTM (Right to Match)</div>
+                            <div className="text-xs text-muted-foreground font-display mt-0.5">Teams can match winning bid to retain a player</div>
                           </div>
-                        )}
+                        </label>
 
                         <div className="flex gap-3 pt-2">
                           <button type="submit" disabled={loading} className="flex-1 px-8 py-3.5 rounded-lg bg-primary text-primary-foreground font-heading uppercase tracking-wider text-sm glow-gold hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                             {loading
                               ? <><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="w-4 h-4 border-2 border-white border-t-transparent rounded-full" />Processing…</>
-                              : editAuction ? <span className="inline-flex items-center gap-2"><Pencil size={16} aria-hidden="true" /> Update Auction</span> : (orgPackage ? <span className="inline-flex items-center gap-2"><PartyPopper size={16} aria-hidden="true" /> Create Auction</span> : <span className="inline-flex items-center gap-2"><CreditCard size={16} aria-hidden="true" /> Pay ₹499 & Create</span>)
+                              : editAuction ? <span className="inline-flex items-center gap-2"><Pencil size={16} aria-hidden="true" /> Update Auction</span> : <span className="inline-flex items-center gap-2"><PartyPopper size={16} aria-hidden="true" /> Create Auction</span>
                             }
                           </button>
                           {editAuction && (
@@ -1121,69 +1057,58 @@ function OrganizerDashboard() {
                     </div>
 
                     {/* ── BULK IMPORT (Pro/Elite) ── */}
-                    {isPro ? (
-                      <div className="bg-glass-premium rounded-xl p-5 border border-blue-500/30 mb-6">
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <h3 className="font-heading text-base uppercase tracking-wider text-blue-400 flex items-center gap-1.5"><Download size={15} aria-hidden="true" /> Bulk Import Players</h3>
-                            <p className="text-muted-foreground text-xs font-display">Import multiple players via CSV</p>
-                          </div>
-                          <a href="/sample-players.csv" download className="text-xs font-heading uppercase tracking-wider text-muted-foreground border border-border px-3 py-1.5 rounded-lg hover:bg-secondary/30 transition-all inline-flex items-center gap-1"><Download size={12} aria-hidden="true" /> Sample CSV</a>
-                        </div>
-                        <div className="flex gap-3 items-center">
-                          <input type="file" accept=".csv,.txt" id="bulkImportFile"
-                            onChange={async(e) => {
-                              const file = e.target.files?.[0]; if (!file || !sel) return;
-                              const fd = new FormData(); fd.append('file', file);
-                              toast.loading('Importing players...');
-                              try {
-                                const r = await api.post(`/auctions/${sel._id}/players/bulk-import`, fd);
-                                toast.dismiss();
-                                toast.success(`Imported ${r.data.imported} players${r.data.failed > 0 ? ` · ${r.data.failed} failed` : ''}`);
-                                fetchPlayers();
-                                if (r.data.errors?.length) console.log('Import errors:', r.data.errors);
-                              } catch(err: any) {
-                                toast.dismiss();
-                                toast.error(err.response?.data?.error || 'Import failed');
-                              }
-                              e.target.value = '';
-                            }}
-                            className="hidden" />
-                          <label htmlFor="bulkImportFile" className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl cursor-pointer font-heading uppercase tracking-wider text-sm transition-all border-2 border-dashed border-blue-500/40 text-blue-400 hover:bg-blue-500/10">
-                            <FolderOpen size={16} aria-hidden="true" /> Choose CSV File
-                          </label>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground mt-2 font-display">CSV columns: Name, Role, Category, BasePrice, Age, Nationality, Matches, Runs, Wickets</p>
-                      </div>
-                    ) : (
-                      <div className="bg-glass-premium rounded-xl p-4 border border-border/30 opacity-60 mb-6 flex items-center justify-between">
+                    {/* Bulk Import Players - available to all users */}
+                    <div className="bg-glass-premium rounded-xl p-5 border border-blue-500/30 mb-6">
+                      <div className="flex items-center justify-between mb-3">
                         <div>
-                          <span className="font-heading text-sm uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1.5"><Download size={14} aria-hidden="true" /> Bulk Import <Lock size={12} aria-hidden="true" /></span>
-                          <p className="text-xs text-muted-foreground font-display mt-0.5">Requires Pro or Elite plan</p>
+                          <h3 className="font-heading text-base uppercase tracking-wider text-blue-400 flex items-center gap-1.5"><Download size={15} aria-hidden="true" /> Bulk Import Players</h3>
+                          <p className="text-muted-foreground text-xs font-display">Import multiple players via CSV</p>
                         </div>
-                        <button onClick={() => setTab('package')} className="text-xs font-heading uppercase tracking-wider px-3 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/30">Upgrade →</button>
+                        <a href="/sample-players.csv" download className="text-xs font-heading uppercase tracking-wider text-muted-foreground border border-border px-3 py-1.5 rounded-lg hover:bg-secondary/30 transition-all inline-flex items-center gap-1"><Download size={12} aria-hidden="true" /> Sample CSV</a>
                       </div>
-                    )}
+                      <div className="flex gap-3 items-center">
+                        <input type="file" accept=".csv,.txt" id="bulkImportFile"
+                          onChange={async(e) => {
+                            const file = e.target.files?.[0]; if (!file || !sel) return;
+                            const fd = new FormData(); fd.append('file', file);
+                            toast.loading('Importing players...');
+                            try {
+                              const r = await api.post(`/auctions/${sel._id}/players/bulk-import`, fd);
+                              toast.dismiss();
+                              toast.success(`Imported ${r.data.imported} players${r.data.failed > 0 ? ` · ${r.data.failed} failed` : ''}`);
+                              fetchPlayers();
+                              if (r.data.errors?.length) console.log('Import errors:', r.data.errors);
+                            } catch(err: any) {
+                              toast.dismiss();
+                              toast.error(err.response?.data?.error || 'Import failed');
+                            }
+                            e.target.value = '';
+                          }}
+                          className="hidden" />
+                        <label htmlFor="bulkImportFile" className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl cursor-pointer font-heading uppercase tracking-wider text-sm transition-all border-2 border-dashed border-blue-500/40 text-blue-400 hover:bg-blue-500/10">
+                          <FolderOpen size={16} aria-hidden="true" /> Choose CSV File
+                        </label>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-2 font-display">CSV columns: Name, Role, Category, BasePrice, Age, Nationality, Matches, Runs, Wickets</p>
+                    </div>
 
-                    {/* ── WHATSAPP SHARE (Pro/Elite) ── */}
-                    {isPro && (
-                      <div className="bg-glass-premium rounded-xl p-5 border border-green-500/30 mb-6">
-                        <h3 className="font-heading text-base uppercase tracking-wider text-green-400 mb-3 flex items-center gap-1.5"><MessageSquare size={15} aria-hidden="true" /> WhatsApp Share</h3>
-                        <div className="flex gap-2 flex-wrap">
-                          {['invite','reminder','result'].map(type => (
-                            <button key={type} onClick={async() => {
-                              if (!sel) return;
-                              try {
-                                const r = await api.get(`/auctions/${sel._id}/whatsapp-share?type=${type}`);
-                                window.open(r.data.waLink, '_blank');
-                              } catch(e: any) { toast.error(e.response?.data?.error || 'Failed'); }
-                            }} className="px-4 py-2 rounded-lg bg-green-500/10 text-green-400 border border-green-500/30 font-heading uppercase tracking-wider text-xs hover:bg-green-500/20 transition-all">
-                              {type === 'invite' ? <span className="inline-flex items-center gap-1"><Link2 size={13} aria-hidden="true" /> Invite Teams</span> : type === 'reminder' ? <span className="inline-flex items-center gap-1"><Bell size={13} aria-hidden="true" /> Send Reminder</span> : <span className="inline-flex items-center gap-1"><Trophy size={13} aria-hidden="true" /> Share Results</span>}
-                            </button>
-                          ))}
-                        </div>
+                    {/* ── WHATSAPP SHARE ── */}
+                    <div className="bg-glass-premium rounded-xl p-5 border border-green-500/30 mb-6">
+                      <h3 className="font-heading text-base uppercase tracking-wider text-green-400 mb-3 flex items-center gap-1.5"><MessageSquare size={15} aria-hidden="true" /> WhatsApp Share</h3>
+                      <div className="flex gap-2 flex-wrap">
+                        {['invite','reminder','result'].map(type => (
+                          <button key={type} onClick={async() => {
+                            if (!sel) return;
+                            try {
+                              const r = await api.get(`/auctions/${sel._id}/whatsapp-share?type=${type}`);
+                              window.open(r.data.waLink, '_blank');
+                            } catch(e: any) { toast.error(e.response?.data?.error || 'Failed'); }
+                          }} className="px-4 py-2 rounded-lg bg-green-500/10 text-green-400 border border-green-500/30 font-heading uppercase tracking-wider text-xs hover:bg-green-500/20 transition-all">
+                            {type === 'invite' ? <span className="inline-flex items-center gap-1"><Link2 size={13} aria-hidden="true" /> Invite Teams</span> : type === 'reminder' ? <span className="inline-flex items-center gap-1"><Bell size={13} aria-hidden="true" /> Send Reminder</span> : <span className="inline-flex items-center gap-1"><Trophy size={13} aria-hidden="true" /> Share Results</span>}
+                          </button>
+                        ))}
                       </div>
-                    )}
+                    </div>
 
                     {/* Player grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
@@ -1710,63 +1635,47 @@ function OrganizerDashboard() {
               </motion.div>
             )}
 
-            {/* ── SPONSORS (Elite) ── */}
+            {/* ── SPONSORS ── */}
             {tab === 'sponsors' && (
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
                 <h2 className="font-heading text-4xl uppercase tracking-[0.12em] text-foreground mb-2">Sponsor <span className="text-gradient-gold">Ads</span></h2>
                 <p className="text-muted-foreground font-display text-sm mb-8">Add sponsor logos — shown on broadcast screen and reports</p>
-                {!isElite ? (
-                  <div className="text-center py-20 bg-glass-navy rounded-xl border border-purple-500/30">
-                    <Building2 size={56} className="mx-auto mb-4 text-purple-400" aria-hidden="true" />
-                    <h3 className="font-heading text-2xl uppercase tracking-wider text-foreground mb-3">Elite Only</h3>
-                    <p className="text-muted-foreground font-display mb-6">Sponsor Ads require the Elite plan</p>
-                    <button onClick={() => setTab('package')} className="px-8 py-3 rounded-lg bg-purple-600 text-white font-heading uppercase tracking-wider text-sm hover:bg-purple-700 transition-all">Upgrade to Elite →</button>
+                <div className="max-w-2xl">
+                  <div className="bg-glass-premium rounded-xl p-7 border border-purple-500/30 mb-6">
+                    <h3 className="font-heading text-lg uppercase tracking-wider text-purple-400 mb-5">Add Sponsor</h3>
+                    <form onSubmit={saveSponsor} className="space-y-4">
+                      <div><label className={LBL}>Sponsor Name *</label><input value={sponsorForm.name} onChange={e => setSponsorForm(s => ({ ...s, name: e.target.value }))} className={INP} placeholder="Sponsor Company Name" required /></div>
+                      <div><label className={LBL}>Website URL</label><input value={sponsorForm.websiteUrl} onChange={e => setSponsorForm(s => ({ ...s, websiteUrl: e.target.value }))} className={INP} placeholder="https://sponsor.com" /></div>
+                      <div><label className={LBL}>Logo</label><input type="file" accept="image/*" onChange={e => { const file = e.target.files?.[0] || null; setSponsorLogoFile(file); }} className="w-full text-muted-foreground text-xs file:mr-2 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-500/10 file:text-purple-400 file:font-heading file:text-xs cursor-pointer" /></div>
+                      <button type="submit" disabled={sponsorLoading} className="w-full py-3 rounded-xl bg-purple-600 text-white font-heading uppercase tracking-wider text-sm hover:bg-purple-700 transition-all disabled:opacity-50">{sponsorLoading ? 'Adding...' : '+ Add Sponsor'}</button>
+                    </form>
                   </div>
-                ) : (
-                  <div className="max-w-2xl">
-                    <div className="bg-glass-premium rounded-xl p-7 border border-purple-500/30 mb-6">
-                      <h3 className="font-heading text-lg uppercase tracking-wider text-purple-400 mb-5">Add Sponsor</h3>
-                      <form onSubmit={saveSponsor} className="space-y-4">
-                        <div><label className={LBL}>Sponsor Name *</label><input value={sponsorForm.name} onChange={e => setSponsorForm(s => ({ ...s, name: e.target.value }))} className={INP} placeholder="Sponsor Company Name" required /></div>
-                        <div><label className={LBL}>Website URL</label><input value={sponsorForm.websiteUrl} onChange={e => setSponsorForm(s => ({ ...s, websiteUrl: e.target.value }))} className={INP} placeholder="https://sponsor.com" /></div>
-                        <div><label className={LBL}>Logo</label><input type="file" accept="image/*" onChange={e => { const file = e.target.files?.[0] || null; setSponsorLogoFile(file); }} className="w-full text-muted-foreground text-xs file:mr-2 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-500/10 file:text-purple-400 file:font-heading file:text-xs cursor-pointer" /></div>
-                        <button type="submit" disabled={sponsorLoading} className="w-full py-3 rounded-xl bg-purple-600 text-white font-heading uppercase tracking-wider text-sm hover:bg-purple-700 transition-all disabled:opacity-50">{sponsorLoading ? 'Adding...' : '+ Add Sponsor'}</button>
-                      </form>
-                    </div>
-                    {sponsors.length > 0 ? (
-                      <div className="space-y-3">
-                        {sponsors.map((s: any) => (
-                          <div key={s._id} className="bg-glass-premium rounded-xl p-4 border border-purple-500/20 flex items-center gap-4">
-                            {s.logoUrl && <img src={imgUrl(s.logoUrl)} alt={s.name} className="w-12 h-12 object-contain rounded-lg" />}
-                            <div className="flex-1">
-                              <div className="font-heading text-sm uppercase tracking-wider text-foreground">{s.name}</div>
-                              {s.websiteUrl && <a href={s.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-purple-400 hover:underline">{s.websiteUrl}</a>}
-                            </div>
-                            <button onClick={() => deleteSponsor(s._id)} className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/30 text-xs font-heading uppercase tracking-wider hover:bg-red-500/20 transition-all">Delete</button>
+                  {sponsors.length > 0 ? (
+                    <div className="space-y-3">
+                      {sponsors.map((s: any) => (
+                        <div key={s._id} className="bg-glass-premium rounded-xl p-4 border border-purple-500/20 flex items-center gap-4">
+                          {s.logoUrl && <img src={imgUrl(s.logoUrl)} alt={s.name} className="w-12 h-12 object-contain rounded-lg" />}
+                          <div className="flex-1">
+                            <div className="font-heading text-sm uppercase tracking-wider text-foreground">{s.name}</div>
+                            {s.websiteUrl && <a href={s.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-purple-400 hover:underline">{s.websiteUrl}</a>}
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-12 text-muted-foreground font-display bg-glass-navy rounded-xl border-gold-subtle">No sponsors yet. Add your first sponsor above.</div>
-                    )}
-                  </div>
-                )}
+                          <button onClick={() => deleteSponsor(s._id)} className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/30 text-xs font-heading uppercase tracking-wider hover:bg-red-500/20 transition-all">Delete</button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground font-display bg-glass-navy rounded-xl border-gold-subtle">No sponsors yet. Add your first sponsor above.</div>
+                  )}
+                </div>
               </motion.div>
             )}
 
-            {/* ── BEAST AI (Elite) ── */}
+            {/* ── BEAST AI ── */}
             {tab === 'ai' && (
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
                 <h2 className="font-heading text-4xl uppercase tracking-[0.12em] text-foreground mb-2">Beast <span className="text-gradient-gold">AI</span> Assistant</h2>
-                <p className="text-muted-foreground font-display text-sm mb-8">Real-time auction intelligence — Elite feature</p>
-                {!isElite ? (
-                  <div className="text-center py-20 bg-glass-navy rounded-xl border border-purple-500/30">
-                    <Bot size={56} className="mx-auto mb-4 text-purple-400" aria-hidden="true" />
-                    <h3 className="font-heading text-2xl uppercase tracking-wider text-foreground mb-3">Elite Only</h3>
-                    <p className="text-muted-foreground font-display mb-6">AI Features require the Elite plan</p>
-                    <button onClick={() => setTab('package')} className="px-8 py-3 rounded-lg bg-purple-600 text-white font-heading uppercase tracking-wider text-sm hover:bg-purple-700 transition-all">Upgrade to Elite →</button>
-                  </div>
-                ) : sel ? (
+                <p className="text-muted-foreground font-display text-sm mb-8">Real-time auction intelligence</p>
+                {sel ? (
                   <div className="space-y-6">
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                       {[
