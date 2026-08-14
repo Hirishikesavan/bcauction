@@ -434,12 +434,9 @@ router.post('/ai/analyze', authenticate, authorize('organizer','admin','team_own
     const auction = await Auction.findById(auctionId);
     if (!auction) return res.status(404).json({ error: 'Auction not found' });
 
-    if (req.user.role !== 'admin') {
-      const OrgPkg = await OrganizerPackage.findOne({ organizerId: auction.organizerId });
-      if (!OrgPkg || OrgPkg.packageType !== 'elite') {
-        return res.status(403).json({ error: 'AI Features require Elite plan', code: 'FEATURE_LOCKED', requiredPlan: 'Elite' });
-      }
-    }
+    // AI feature check removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All features including AI are available to all users
+
     // Team owners may only request AI help for auctions they're actually in.
     if (req.user.role === 'team_owner') {
       const ownsTeamHere = await Team.exists({ auctionId, ownerId: req.user.id });
@@ -564,10 +561,8 @@ router.post('/ai/analyze', authenticate, authorize('organizer','admin','team_own
 router.post('/ai/commentary', authenticate, async (req, res) => {
   try {
     const { event, playerName, teamName, amount, auctionId } = req.body;
-    const OrgPkg = await OrganizerPackage.findOne({ organizerId: req.user.id }).catch(()=>null);
-    if (req.user.role !== 'admin' && (!OrgPkg || OrgPkg.packageType !== 'elite')) {
-      return res.status(403).json({ error: 'AI Commentary requires Elite plan', code: 'FEATURE_LOCKED' });
-    }
+    // AI commentary check removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All features including AI commentary are available to all users
     const templates = {
       sold: [
         `${teamName} secures ${playerName} for ${amount}! A strategic addition to their squad.`,
@@ -595,10 +590,8 @@ router.post('/ai/commentary', authenticate, async (req, res) => {
 // ── AUCTION REPLAY ────────────────────────────────────────────
 router.get('/replay/:auctionId', authenticate, async (req, res) => {
   try {
-    const OrgPkg = await OrganizerPackage.findOne({ organizerId: req.user.id }).catch(()=>null);
-    if (req.user.role !== 'admin' && (!OrgPkg || !['pro','elite'].includes(OrgPkg.packageType))) {
-      return res.status(403).json({ error: 'Auction Replay requires Pro or Elite plan', code: 'FEATURE_LOCKED', requiredPlan: 'Pro' });
-    }
+    // Auction replay check removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All features including auction replay are available to all users
     const AuctionReplay = require('../models/AuctionReplay');
     const events = await AuctionReplay.find({ auctionId: req.params.auctionId }).sort({ timestamp: 1 });
     res.json({ success: true, events });
@@ -625,16 +618,8 @@ router.get('/reports/:auctionId', authenticate, authorize('organizer','admin','t
     const auction = await Auction.findById(auctionId);
     if (!auction) return res.status(404).json({ error: 'Auction not found' });
 
-    const { getOrgPlan } = require('../middleware/subscription');
-    if (req.user.role !== 'admin') {
-      const result = await getOrgPlan(auction.organizerId);
-      if (!result) {
-        return res.status(403).json({ error: 'This auction\'s organizer has no active subscription.', needsPlan: true });
-      }
-      if (!result.plan.features.squadReports) {
-        return res.status(403).json({ error: 'Squad reports require the organizer to be on the Pro plan or higher.', code: 'FEATURE_LOCKED', feature: 'squadReports', requiredPlan: 'Pro', upgrade: true });
-      }
-    }
+    // Squad reports check removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All features including squad reports are available to all users
 
     const isOwnerOrAdmin = req.user.role === 'admin' || auction.organizerId.toString() === (req.user.id).toString();
     if (!isOwnerOrAdmin) {

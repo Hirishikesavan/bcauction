@@ -83,8 +83,7 @@ export default function ReportsPage() {
       setAiSummary(r.data.analysis);
       setActiveTab('ai');
     } catch (err: any) {
-      if (err.response?.data?.code === 'FEATURE_LOCKED') toast.error('AI Features require Elite plan');
-      else toast.error('AI analysis failed');
+      toast.error('AI analysis failed');
     } finally { setAiLoading(false); }
   };
 

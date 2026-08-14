@@ -409,19 +409,8 @@ function OrganizerDashboard() {
       return;
     }
 
-    // Check package first (admin bypass)
-    if (user?.role !== 'admin') {
-      if (!orgPackage) {
-        toast.error('Please purchase a package first to create auctions');
-        setTab('package');
-        return;
-      }
-      if (orgPackage.auctionsUsed >= orgPackage.auctionsAllowed) {
-        toast.error(`Auction limit reached (${orgPackage.auctionsAllowed}). Upgrade your plan.`);
-        setTab('package');
-        return;
-      }
-    }
+    // Package check removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All users can create auctions without any package requirement
 
     setLoading(true);
     try {

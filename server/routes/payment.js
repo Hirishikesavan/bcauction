@@ -418,25 +418,8 @@ router.post('/verify-and-create-auction', authenticate, authorize('organizer', '
     if (!name?.trim()) return res.status(400).json({ error: 'Auction name required' });
     if (!date)         return res.status(400).json({ error: 'Auction date required' });
 
-    // Package quota check
-    if (req.user.role !== 'admin') {
-      const orgPkg = await OrganizerPackage.findOne({ organizerId: req.user.id });
-      if (!orgPkg)
-        return res.status(403).json({ error: 'No active package. Please purchase a plan first.', needsPackage: true });
-      if (orgPkg.expiresAt < new Date())
-        return res.status(403).json({ error: 'Your package has expired. Please renew.', needsPackage: true });
-      if (orgPkg.auctionsUsed >= orgPkg.auctionsAllowed)
-        return res.status(403).json({ error: `Auction limit reached (${orgPkg.auctionsAllowed}/${orgPkg.auctionsAllowed}). Upgrade your plan.`, needsPackage: true });
-      
-      // RTM feature check for non-admin users
-      if (rtmEnabled === 'true' || rtmEnabled === true) {
-        const { getOrgPlan } = require('../middleware/subscription');
-        const result = await getOrgPlan(req.user.id);
-        if (!result || !result.plan.features.rtm) {
-          return res.status(403).json({ error: 'RTM requires Pro or Elite plan', code: 'FEATURE_LOCKED', requiredPlan: 'Pro' });
-        }
-      }
-    }
+    // Package quota check removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All users can create auctions without any package requirement
 
     // Admin bypass payment verification
     const isAdmin = req.user.role === 'admin';
@@ -502,10 +485,7 @@ router.post('/verify-and-create-auction', authenticate, authorize('organizer', '
       isDevMode:         isDev,
     });
 
-    // Increment package usage counter
-    if (req.user.role !== 'admin') {
-      await OrganizerPackage.updateOne({ organizerId: req.user.id }, { $inc: { auctionsUsed: 1 } });
-    }
+    // Package usage counter removed - Beast Cricket now operates as a completely free, fully unlocked platform
 
     const io = req.app.get('io');
     if (io) {

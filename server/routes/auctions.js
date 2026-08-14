@@ -204,28 +204,11 @@ router.post('/', authenticate, authorize('organizer','admin'), async (req, res) 
             teamOwnerFeeEnabled, teamOwnerFee } = req.body;
 
     // If RTM is requested, check if user has Pro or Elite plan (skip for admin)
-    if (rtmEnabled === 'true' || rtmEnabled === true) {
-      if (req.user.role !== 'admin') {
-        const { getOrgPlan } = require('../middleware/subscription');
-        const result = await getOrgPlan(req.user.id);
-        if (!result || !result.plan.features.rtm) {
-          return res.status(403).json({ error: 'RTM requires Pro or Elite plan', code: 'FEATURE_LOCKED', requiredPlan: 'Pro' });
-        }
-      }
-    }
+    // RTM feature check removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All features including RTM are available to all users
 
-    // Check organizer has an active package with quota remaining (skip for admin)
-    const OrganizerPackage = require('../models/OrganizerPackage');
-    const { getOrgPackageForUser } = require('../middleware/subscription');
-    if (req.user.role !== 'admin') {
-      const orgPkg = await getOrgPackageForUser(req.user.id, req.user.email);
-      if (!orgPkg) {
-        return res.status(403).json({ error: 'No active package. Please purchase a plan first.', needsPackage: true });
-      }
-      if (orgPkg.auctionsUsed >= orgPkg.auctionsAllowed) {
-        return res.status(403).json({ error: `Auction limit reached (${orgPkg.auctionsAllowed}). Upgrade your plan.`, needsPackage: true });
-      }
-    }
+    // Package quota check removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All users can create auctions without any package requirement
 
     const auction = new Auction({
       organizerId: req.user.id, name, description, date,
@@ -243,13 +226,7 @@ router.post('/', authenticate, authorize('organizer','admin'), async (req, res) 
     });
     await auction.save();
 
-    // Increment package usage (skip for admin)
-    if (req.user.role !== 'admin') {
-      await OrganizerPackage.updateOne(
-        { organizerId: req.user.id },
-        { $inc: { auctionsUsed: 1 } }
-      );
-    }
+    // Package usage increment removed - Beast Cricket now operates as a completely free, fully unlocked platform
 
     // Broadcast to everyone that a new auction exists
     const io = req.app.get('io');
@@ -833,16 +810,11 @@ router.delete('/:id/schedule', authenticate, authorize('organizer', 'admin'), as
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── BROADCAST VIEWER MODE — Elite only ───────────────────────
+// ── BROADCAST VIEWER MODE ─────────────────────────────────────
 router.post('/:id/broadcast', authenticate, authorize('organizer', 'admin'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      const { getOrgPlan } = require('../middleware/subscription');
-      const result = await getOrgPlan(req.user.id);
-      if (!result?.plan?.features?.broadcastScreen) {
-        return res.status(403).json({ error: 'Broadcast Viewer Mode requires the Elite plan.', code: 'FEATURE_LOCKED', requiredPlan: 'elite', upgrade: true });
-      }
-    }
+    // Broadcast screen check removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All features including broadcast screen are available to all users
     const { enabled } = req.body;
     const auction = await Auction.findByIdAndUpdate(req.params.id, { broadcastEnabled: !!enabled }, { new: true });
     const io = req.app.get('io');
@@ -901,17 +873,12 @@ router.get('/:id/export/teams', authenticate, authorize('organizer', 'admin'), r
 module.exports = router;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BULK IMPORT PLAYERS (Pro/Elite only) — CSV/JSON upload
+// BULK IMPORT PLAYERS — CSV/JSON upload
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/:id/players/bulk-import', authenticate, authorize('organizer','admin'), upload.single('file'), async (req, res) => {
   try {
-    const { requireFeature } = require('../middleware/subscription');
-    // Check Pro/Elite
-    const OrganizerPackage = require('../models/OrganizerPackage');
-    const pkg = await OrganizerPackage.findOne({ organizerId: req.user.id });
-    if (req.user.role !== 'admin' && (!pkg || !['pro','elite'].includes(pkg.packageType))) {
-      return res.status(403).json({ error: 'Bulk Import requires Pro or Elite plan', code: 'FEATURE_LOCKED', requiredPlan: 'Pro' });
-    }
+    // Bulk import check removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All features including bulk import are available to all users
     const auctionId = req.params.id;
     const auction = await Auction.findById(auctionId);
     if (!auction) return res.status(404).json({ error: 'Auction not found' });
@@ -977,11 +944,8 @@ router.post('/:id/players/bulk-import', authenticate, authorize('organizer','adm
 // ─────────────────────────────────────────────────────────────────────────────
 router.post('/:id/teams/:teamId/wallet', authenticate, authorize('organizer','admin'), async (req, res) => {
   try {
-    const OrganizerPackage = require('../models/OrganizerPackage');
-    const pkg = await OrganizerPackage.findOne({ organizerId: req.user.id });
-    if (req.user.role !== 'admin' && (!pkg || !['pro','elite'].includes(pkg.packageType))) {
-      return res.status(403).json({ error: 'Team Wallet requires Pro or Elite plan', code: 'FEATURE_LOCKED' });
-    }
+    // Team wallet check removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All features including team wallet are available to all users
     const { type, amount, note } = req.body;
     if (!['credit','debit'].includes(type)) return res.status(400).json({ error: 'type must be credit or debit' });
     const amt = parseInt(amount);
@@ -1005,11 +969,8 @@ router.post('/:id/teams/:teamId/wallet', authenticate, authorize('organizer','ad
 // ─────────────────────────────────────────────────────────────────────────────
 router.get('/:id/whatsapp-share', authenticate, authorize('organizer','admin'), async (req, res) => {
   try {
-    const OrganizerPackage = require('../models/OrganizerPackage');
-    const pkg = await OrganizerPackage.findOne({ organizerId: req.user.id });
-    if (req.user.role !== 'admin' && (!pkg || !['pro','elite'].includes(pkg.packageType))) {
-      return res.status(403).json({ error: 'WhatsApp Notifications require Pro or Elite plan', code: 'FEATURE_LOCKED' });
-    }
+    // WhatsApp notifications check removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All features including WhatsApp notifications are available to all users
     const auction = await Auction.findById(req.params.id);
     if (!auction) return res.status(404).json({ error: 'Auction not found' });
     const baseUrl = req.headers.origin || 'https://beastcricket.com';

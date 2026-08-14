@@ -55,8 +55,7 @@ export default function AnalyticsPage() {
       const r = await api.post('/packages/ai/analyze', { auctionId: selAuction._id, analysisType: type });
       setAiResult({ type, data: r.data.analysis });
     } catch (e: any) {
-      if (e.response?.data?.code === 'FEATURE_LOCKED') toast.error('AI requires Elite plan');
-      else toast.error('Analysis failed');
+      toast.error('Analysis failed');
     } finally { setAiLoading(false); }
   };
 
