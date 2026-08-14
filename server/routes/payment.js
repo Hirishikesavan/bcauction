@@ -421,25 +421,9 @@ router.post('/verify-and-create-auction', authenticate, authorize('organizer', '
     // Package quota check removed - Beast Cricket now operates as a completely free, fully unlocked platform
     // All users can create auctions without any package requirement
 
-    // Admin bypass payment verification
-    const isAdmin = req.user.role === 'admin';
+    // Payment verification removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All users can create auctions without any payment requirement
     const isDev = devMode === 'true' || devMode === true;
-
-    if (!isDev && !isAdmin) {
-      if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature)
-        return res.status(400).json({ error: 'Payment data incomplete' });
-      if (!rzpUtil.isConfigured())
-        return res.status(500).json({ error: 'Payment gateway not configured on server' });
-      if (await isPaymentAlreadyProcessed(razorpay_payment_id))
-        return res.status(409).json({ error: 'This payment has already been used to create an auction' });
-      if (!rzpUtil.verifySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature)) {
-        console.warn('❌ Auction creation signature mismatch for', razorpay_payment_id);
-        return res.status(400).json({ error: 'Payment verification failed' });
-      }
-      console.log(`✅ Auction creation payment verified: ${razorpay_payment_id}`);
-    } else if (isAdmin) {
-      console.log(`✅ Admin bypassing payment verification for auction creation`);
-    }
 
     const feeEnabled = registrationFeeEnabled === 'true' || registrationFeeEnabled === true;
     const auction = new Auction({
@@ -458,34 +442,8 @@ router.post('/verify-and-create-auction', authenticate, authorize('organizer', '
     });
     await auction.save();
 
-    const feeAmount = parseInt(process.env.AUCTION_CREATION_FEE_PAISE || '49900', 10);
-
-    await savePayment({
-      organizerId: req.user.id,
-      type: 'auction_creation',
-      razorpayOrderId:   razorpay_order_id  || 'dev',
-      razorpayPaymentId: razorpay_payment_id || `dev_${Date.now()}`,
-      amount: feeAmount,
-      currency: 'INR',
-      status: 'success',
-      auctionId: auction._id,
-      isDevMode: isDev,
-    });
-
-    await createInvoice({
-      userId:            req.user.id,
-      userName:          req.user.name || req.user.email,
-      userEmail:         req.user.email,
-      type:              'auction_creation',
-      description:       `Auction Creation Fee — ${auction.name}`,
-      amount:            feeAmount,
-      razorpayOrderId:   razorpay_order_id,
-      razorpayPaymentId: razorpay_payment_id,
-      auctionId:         auction._id,
-      isDevMode:         isDev,
-    });
-
-    // Package usage counter removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // Payment saving and invoice creation removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // No payment or invoice records needed for auction creation
 
     const io = req.app.get('io');
     if (io) {
