@@ -3,7 +3,9 @@ import { io, Socket } from 'socket.io-client';
 const SOCKET_URL =
   (process.env.NEXT_PUBLIC_SOCKET_URL ||
    process.env.NEXT_PUBLIC_API_URL    ||
-   'http://localhost:5000').replace(/\/api$/, '');
+   (typeof window !== 'undefined' && window.location.hostname.includes('railway.app') 
+    ? 'https://beast-cricket-backend-production.up.railway.app' 
+    : 'http://localhost:5000')).replace(/\/api$/, '');
 
 let socket: Socket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
