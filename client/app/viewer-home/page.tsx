@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import AuthGuard from '@/components/shared/AuthGuard';
 import { HomeHeader, HomeFooter, SectionTitle } from '@/components/homepage/site-chrome';
 import {
   Eye, Radio, BarChart3, Search, Users, Trophy, PlayCircle,
@@ -21,11 +20,7 @@ const NAV = [
 const IMG = '/homepage/viewer';
 
 export default function ViewerHomePage() {
-  return (
-    <AuthGuard roles={['viewer']}>
-      <ViewerHome />
-    </AuthGuard>
-  );
+  return <ViewerHome />;
 }
 
 function ViewerHome() {

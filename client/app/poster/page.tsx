@@ -6,7 +6,6 @@ import {
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import AuthGuard from '@/components/shared/AuthGuard';
 import api, { imgUrl } from '@/lib/api';
 import { fmt } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -388,8 +387,7 @@ export default function PosterGeneratorPage() {
   const LBL = 'block text-[10px] font-heading uppercase tracking-wider text-muted-foreground mb-1.5';
 
   return (
-    <AuthGuard roles={['organizer','admin']}>
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "url('/bg-organizer.png')", backgroundSize: 'cover', opacity: 0.1 }} />
         <div className="relative p-6 max-w-7xl mx-auto">
           <div className="mb-4"><BackButton href="/dashboard/organizer" label="Organizer Dashboard" /></div>
@@ -534,7 +532,6 @@ export default function PosterGeneratorPage() {
           )}
         </div>
       </div>
-    </AuthGuard>
   );
 }
 

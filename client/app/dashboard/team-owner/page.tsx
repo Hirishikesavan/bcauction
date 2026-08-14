@@ -458,103 +458,8 @@ export default function TeamOwnerDashboard() {
         console.log('Players data:', playersData);
       } catch (e) {
         console.log('Failed to fetch players:', e);
-        // Use mock data for demonstration
-        playersData = [
-          { 
-            _id: '1', 
-            name: 'Virat Kohli', 
-            role: 'Batsman', 
-            category: 'Platinum', 
-            basePrice: 2000000, 
-            sold: true, 
-            soldPrice: 3500000,
-            team: { _id: '1', shortName: 'RCB', name: 'Royal Challengers Bangalore', primaryColor: '#dc2626', logo: null },
-            photo: 'https://picsum.photos/seed/virat/100/100.jpg',
-            points: 890
-          },
-          { 
-            _id: '2', 
-            name: 'Rohit Sharma', 
-            role: 'Batsman', 
-            category: 'Platinum', 
-            basePrice: 1800000, 
-            sold: true, 
-            soldPrice: 2800000,
-            team: { _id: '2', shortName: 'MI', name: 'Mumbai Indians', primaryColor: '#0066cc', logo: null },
-            photo: 'https://picsum.photos/seed/rohit/100/100.jpg',
-            points: 845
-          },
-          { 
-            _id: '3', 
-            name: 'Jasprit Bumrah', 
-            role: 'Bowler', 
-            category: 'Gold', 
-            basePrice: 1500000, 
-            sold: false, 
-            team: null,
-            photo: 'https://picsum.photos/seed/bumrah/100/100.jpg',
-            points: 720
-          },
-          { 
-            _id: '4', 
-            name: 'MS Dhoni', 
-            role: 'WicketKeeper', 
-            category: 'Platinum', 
-            basePrice: 2500000, 
-            sold: true, 
-            soldPrice: 4000000,
-            team: { _id: '3', shortName: 'CSK', name: 'Chennai Super Kings', primaryColor: '#f4a460', logo: null },
-            photo: 'https://picsum.photos/seed/dhoni/100/100.jpg',
-            points: 920
-          },
-          { 
-            _id: '5', 
-            name: 'KL Rahul', 
-            role: 'WicketKeeper', 
-            category: 'Gold', 
-            basePrice: 1200000, 
-            sold: true, 
-            soldPrice: 1800000,
-            team: { _id: '4', shortName: 'KKR', name: 'Kolkata Knight Riders', primaryColor: '#6b46c1', logo: null },
-            photo: 'https://picsum.photos/seed/rahul/100/100.jpg',
-            points: 680
-          },
-          { 
-            _id: '6', 
-            name: 'Hardik Pandya', 
-            role: 'AllRounder', 
-            category: 'Gold', 
-            basePrice: 1600000, 
-            sold: true, 
-            soldPrice: 2400000,
-            team: { _id: '1', shortName: 'RCB', name: 'Royal Challengers Bangalore', primaryColor: '#dc2626', logo: null },
-            photo: 'https://picsum.photos/seed/hardik/100/100.jpg',
-            points: 750
-          },
-          { 
-            _id: '7', 
-            name: 'Rashid Khan', 
-            role: 'Bowler', 
-            category: 'Gold', 
-            basePrice: 1400000, 
-            sold: false, 
-            team: null,
-            photo: 'https://picsum.photos/seed/rashid/100/100.jpg',
-            points: 690
-          },
-          { 
-            _id: '8', 
-            name: 'David Warner', 
-            role: 'Batsman', 
-            category: 'Gold', 
-            basePrice: 1300000, 
-            sold: true, 
-            soldPrice: 1900000,
-            team: { _id: '2', shortName: 'MI', name: 'Mumbai Indians', primaryColor: '#0066cc', logo: null },
-            photo: 'https://picsum.photos/seed/warner/100/100.jpg',
-            points: 710
-          }
-        ];
+        // Use empty array for now
+        playersData = [];
       }
       
       try {
@@ -1462,6 +1367,5 @@ export default function TeamOwnerDashboard() {
           )}
         </div>
       </div>
-    </div>
   );
 }

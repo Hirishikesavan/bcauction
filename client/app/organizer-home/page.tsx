@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import AuthGuard from '@/components/shared/AuthGuard';
 import { useAuth } from '@/hooks/useAuth';
 import { HomeHeader, HomeFooter, SectionTitle } from '@/components/homepage/site-chrome';
 import { TermsModal } from '@/components/beast/TermsModal';
@@ -23,11 +22,7 @@ const NAV = [
 const IMG = '/homepage/organizer';
 
 export default function OrganizerHomePage() {
-  return (
-    <AuthGuard roles={['organizer', 'admin']}>
-      <OrganizerHome />
-    </AuthGuard>
-  );
+  return <OrganizerHome />;
 }
 
 function OrganizerHome() {
@@ -36,15 +31,7 @@ function OrganizerHome() {
   useEffect(() => {
     document.title = 'Beast Cricket for Organizers — Run Pro Cricket Auctions';
     console.log(' [OrganizerHome] Component mounted successfully');
-    
-    // Force organizer role in localStorage when on organizer homepage
-    if (user?.id) {
-      console.log(' [OrganizerHome] Forcing organizer role for user:', user.id);
-      localStorage.setItem(`role_set_${user.id}`, 'organizer');
-      localStorage.setItem('pending_role', 'organizer');
-      console.log(' [OrganizerHome] localStorage forced to organizer');
-    }
-  }, [user]);
+  }, []);
 
   return (
     <div className="bc-homepage min-h-screen">

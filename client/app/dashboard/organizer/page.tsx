@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import AuthGuard from '@/components/shared/AuthGuard';
 import api, { imgUrl } from '@/lib/api';
 import { getSocket } from '@/lib/socket';
 import { fmt, roleColors, categoryColors, roleIcons } from '@/lib/utils';
@@ -649,8 +648,7 @@ function OrganizerDashboard() {
   }, [user?.email, user?.role, orgPackage, isAdmin, isPro, isElite]);
 
   return (
-    <AuthGuard roles={['organizer', 'admin']}>
-      <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
 
         {/* SIDEBAR */}
         <div className="w-56 flex-shrink-0 flex flex-col h-full border-r" style={{ background: 'hsl(0 0% 5%)', borderColor: 'hsla(45,100%,51%,0.12)' }}>
@@ -1941,9 +1939,8 @@ function OrganizerDashboard() {
             )}
           </div>
         </div>
-      </div>
-    {/* ─────────────────── UPI PAYMENT MODAL ─────────────────── */}
-    <AnimatePresence>
+        {/* ─────────────────── UPI PAYMENT MODAL ─────────────────── */}
+        <AnimatePresence>
       {/* ── PLAYER EDIT MODAL ── */}
       {showPlayerEditModal && editPlayer && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -2202,8 +2199,7 @@ function OrganizerDashboard() {
         </motion.div>
       )}
     </AnimatePresence>
-
-    </AuthGuard>
+    </div>
   );
 }
 
@@ -2214,10 +2210,8 @@ function OrganizerDashboard() {
 // client-side bailout check Next.js does while building the static shell.
 export default function OrganizerDashboardPage() {
   return (
-    <AuthGuard roles={['organizer', 'admin']}>
-      <Suspense fallback={null}>
-        <OrganizerDashboard />
-      </Suspense>
-    </AuthGuard>
+    <Suspense fallback={null}>
+      <OrganizerDashboard />
+    </Suspense>
   );
 }

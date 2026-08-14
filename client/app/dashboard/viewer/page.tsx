@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import AuthGuard from '@/components/shared/AuthGuard';
 import api, { imgUrl } from '@/lib/api';
 import { getSocket } from '@/lib/socket';
 import { fmt, roleColors, categoryColors, roleIcons } from '@/lib/utils';
@@ -79,8 +78,7 @@ export default function ViewerDashboard() {
   const timerColor    = liveState?.timer <= 5 ? '#ef4444' : liveState?.timer <= 10 ? '#f97316' : 'hsl(45,100%,51%)';
 
   return (
-    <AuthGuard roles={['viewer', 'organizer', 'admin', 'team_owner']}>
-      <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative">
 
         {/* Viewer bg image */}
         <div style={{position:'fixed',inset:0,backgroundImage:"url('/bg-viewer.png'),url('/stadium-bg.png')",backgroundSize:'cover',backgroundPosition:'center',opacity:0.18,pointerEvents:'none',zIndex:0}}/>
@@ -488,6 +486,5 @@ export default function ViewerDashboard() {
           ) : null}
         </div>
       </div>
-    </AuthGuard>
   );
 }

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth, getRoleRedirect } from '@/hooks/useAuth';
-import AuthGuard from '@/components/shared/AuthGuard';
 import BeastLogo from '@/components/beast/BeastLogo';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -91,8 +90,7 @@ export default function ProfilePage() {
   const LBL = "block text-[10px] font-heading uppercase tracking-wider text-muted-foreground mb-1.5";
 
   return (
-    <AuthGuard>
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
         {/* Nav */}
         <div className="sticky top-0 z-20 bg-glass-navy" style={{ borderBottom: '1px solid hsla(45,100%,51%,0.12)' }}>
           <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -206,6 +204,5 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
-    </AuthGuard>
   );
 }

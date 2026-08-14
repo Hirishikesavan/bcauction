@@ -7,7 +7,6 @@ import {
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import AuthGuard from '@/components/shared/AuthGuard';
 import api from '@/lib/api';
 import { fmt } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -71,8 +70,7 @@ export default function AnalyticsPage() {
   const maxSpend = Math.max(...teamReports.map(t => t.totalSpent || 0), 1);
 
   return (
-    <AuthGuard roles={['organizer','admin']}>
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "url('/bg-organizer.png')", backgroundSize: 'cover', opacity: 0.1 }} />
         <div className="relative p-6 max-w-7xl mx-auto">
           <div className="mb-4"><BackButton href="/dashboard/organizer" label="Dashboard" /></div>
@@ -264,6 +262,5 @@ export default function AnalyticsPage() {
           )}
         </div>
       </div>
-    </AuthGuard>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import AuthGuard from '@/components/shared/AuthGuard';
 import { HomeHeader, HomeFooter, SectionTitle } from '@/components/homepage/site-chrome';
 import { TermsModal } from '@/components/beast/TermsModal';
 import {
@@ -32,11 +31,7 @@ const POWERFUL_FEATURES = [
 ] as const;
 
 export default function TeamOwnerHomePage() {
-  return (
-    <AuthGuard roles={['team_owner']}>
-      <TeamOwnerHome />
-    </AuthGuard>
-  );
+  return <TeamOwnerHome />;
 }
 
 function TeamOwnerHome() {

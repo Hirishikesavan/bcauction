@@ -6,7 +6,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import AuthGuard from '@/components/shared/AuthGuard';
 import api, { imgUrl } from '@/lib/api';
 import { fmt } from '@/lib/utils';
 import BackButton from '@/components/shared/BackButton';
@@ -222,8 +221,7 @@ export default function PosterGenerator() {
   const INP = 'w-full px-4 py-2.5 rounded-xl bg-secondary/20 border border-border/40 text-foreground text-sm focus:border-primary/60 focus:outline-none transition-all';
 
   return (
-    <AuthGuard roles={['organizer','admin','team_owner']}>
-      <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative">
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage:"url('/bg-organizer.png')", backgroundSize:'cover', opacity: 0.1 }} />
         <div className="relative p-6 max-w-5xl mx-auto">
           <div className="mb-4"><BackButton href="/dashboard/organizer" label="Back" /></div>
@@ -368,6 +366,5 @@ export default function PosterGenerator() {
           </div>
         </div>
       </div>
-    </AuthGuard>
   );
 }

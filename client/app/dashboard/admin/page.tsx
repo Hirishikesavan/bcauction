@@ -5,7 +5,6 @@ import { useEffect, useState, useCallback, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import AuthGuard from '@/components/shared/AuthGuard';
 import api from '@/lib/api';
 import { getSocket } from '@/lib/socket';
 import toast from 'react-hot-toast';
@@ -169,8 +168,7 @@ function AdminDashboard() {
   );
 
   return (
-    <AuthGuard roles={['admin']}>
-      <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
 
         {/* SIDEBAR */}
         <div className="w-56 flex-shrink-0 flex flex-col border-r" style={{ background: 'hsl(0 0% 5%)', borderColor: 'hsla(45,100%,51%,0.12)' }}>
@@ -756,7 +754,6 @@ function AdminDashboard() {
           </div>
         </div>
       </div>
-    </AuthGuard>
   );
 }
 

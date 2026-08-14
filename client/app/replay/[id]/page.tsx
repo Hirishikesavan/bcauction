@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import AuthGuard from '@/components/shared/AuthGuard';
 import api from '@/lib/api';
 import { fmt } from '@/lib/utils';
 import BackButton from '@/components/shared/BackButton';
@@ -86,8 +85,7 @@ export default function ReplayPage() {
   };
 
   return (
-    <AuthGuard roles={['organizer','admin']}>
-      <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative">
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "url('/bg-organizer.png')", backgroundSize: 'cover', opacity: 0.12 }} />
         <div className="relative p-6 max-w-5xl mx-auto">
           <div className="mb-4"><BackButton href="/dashboard/organizer" label="Organizer Dashboard" /></div>
@@ -171,6 +169,5 @@ export default function ReplayPage() {
           )}
         </div>
       </div>
-    </AuthGuard>
   );
 }

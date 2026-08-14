@@ -10,7 +10,6 @@ const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const ioStore = require('./socket/io');
-const { initAuth, getAuth, getNodeHandler } = require('./lib/auth');
 const { authMiddleware } = require('./lib/middleware');
 const { getCloudinaryStatus } = require('./utils/cloudinary');
 
@@ -153,13 +152,6 @@ console.log('📂 Uploads URL path: /uploads');
 // ── Auth Middleware ─────────────────────────
 app.use(authMiddleware);
 
-// ── Better Auth Routes ──────────────────────
-// ── Better Auth Routes ──────────────────────
-app.use('/api/auth', (req, res, next) => {
-  console.log('AUTH HIT:', req.method, req.originalUrl);
-  return getNodeHandler()(req, res);
-});
-
 // ── Admin role enforcement middleware ───────────────────────────────
 // Ensures admin email always has admin role (but NOT automatic elite package)
 const _adminRoleEnforce = async (req, res, next) => {
@@ -244,14 +236,7 @@ app.post('/api/user/set-role', authMiddleware, async (req, res) => {
     }
 
     // Also update via Better Auth API so the session object reflects the new role.
-    // This is belt-and-suspenders — the authenticate middleware always reads fresh
-    // from DB, so this is not strictly required but keeps the session in sync.
-    try {
-      await getAuth().api.updateUser({ userId: req.user.id, updates: { role } });
-    } catch (sessionErr) {
-      // Non-fatal — authenticate middleware re-reads DB on every request
-      console.warn('  ⚠️ Better Auth updateUser (non-fatal):', sessionErr.message);
-    }
+    // Authentication removed - no Better Auth sync needed
 
     console.log('✅ [set-role] Role set in DB:', req.user.email, '→', role);
     return res.json({ success: true, role });
@@ -270,7 +255,6 @@ app.post('/api/user/fix-admin-role', authMiddleware, async (req, res) => {
     // Only allow the admin emails to fix their own role
     const ADMIN_EMAILS = (process.env.ADMIN_EMAIL || 'hirishi2020@gmail.com').toLowerCase().split(',').map(e => e.trim());
     if (req.user.email && ADMIN_EMAILS.includes(req.user.email.toLowerCase())) {
-      const auth = getAuth();
       const { MongoClient } = require('mongodb');
       const c = new MongoClient(process.env.MONGODB_URI);
       await c.connect();
@@ -281,24 +265,6 @@ app.post('/api/user/fix-admin-role', authMiddleware, async (req, res) => {
         { $or: [{ id: req.user.id }, { _id: req.user.id }] },
         { $set: { role: 'admin', isAdmin: true } }
       );
-      
-      // Update Better Auth user
-      try {
-        await auth.api.updateUser({
-          userId: req.user.id,
-          updates: { role: 'admin', isAdmin: true }
-        });
-      } catch (sessionErr) {
-        console.error('Failed to update Better Auth user:', sessionErr.message);
-      }
-      
-      // Delete all sessions for this user to force re-login
-      try {
-        await db.collection('session').deleteMany({ userId: req.user.id });
-        console.log('✅ All sessions cleared for admin user');
-      } catch (sessionErr) {
-        console.error('Failed to clear sessions:', sessionErr.message);
-      }
       
       await c.close();
       
@@ -351,17 +317,7 @@ app.put('/api/user/profile', authMiddleware, async (req, res) => {
       { $set: { name: nameClean, email: emailClean, updatedAt: new Date() } }
     );
 
-    // Also sync via Better Auth API so any cached session data is refreshed
-    try {
-      const auth = getAuth();
-      await auth.api.updateUser({
-        userId: req.user.id,
-        updates: { name: nameClean, email: emailClean },
-      });
-    } catch (syncErr) {
-      // Non-fatal - DB is already updated, next getSession will return fresh data
-      console.warn('Better Auth updateUser sync warning:', syncErr.message);
-    }
+    // Authentication removed - no Better Auth sync needed
 
     const updated = await db.collection('user').findOne({ id: req.user.id });
     console.log('✅ Profile updated for:', emailClean);
@@ -389,11 +345,7 @@ app.put('/api/user/change-password', authMiddleware, async (req, res) => {
     if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Current and new password are required.' });
     if (newPassword.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters.' });
 
-    const auth = getAuth();
-    await auth.api.changePassword({
-      body: { currentPassword, newPassword },
-      headers: req.headers,
-    });
+    // Authentication removed - password change disabled
 
     console.log('✅ Password changed for:', req.user.email);
     return res.json({ success: true, message: 'Password changed successfully.' });
@@ -434,7 +386,6 @@ app.post('/api/emergency-fix-admin', async (req, res) => {
       return res.status(403).json({ error: 'Only admin email can use this endpoint' });
     }
     
-    const auth = getAuth();
     const { MongoClient } = require('mongodb');
     const c = new MongoClient(process.env.MONGODB_URI);
     await c.connect();
@@ -518,14 +469,12 @@ app.get('/', (req, res) => {
   });
 });
 app.get('/debug-google', (req, res) => {
-  const auth = getAuth();
-
   res.json({
     hasGoogleId: !!process.env.GOOGLE_CLIENT_ID,
     hasGoogleSecret: !!process.env.GOOGLE_CLIENT_SECRET,
     backendUrl: process.env.BACKEND_URL,
     frontendUrl: process.env.FRONTEND_URL,
-    authLoaded: !!auth,
+    authLoaded: false,
   });
 });
 
@@ -553,10 +502,9 @@ app.post('/api/user/force-verify-email', authMiddleware, async (req, res) => {
 // ── 404 Handler ─────────────────────────────
 app.get('/debug-auth', async (req, res) => {
   try {
-    const auth = getAuth();
     res.json({
       ok: true,
-      authLoaded: !!auth,
+      authLoaded: false,
     });
   } catch (e) {
     res.status(500).json({
@@ -597,10 +545,7 @@ mongoose.connect(MONGODB_URI, {
 })
 .then(async () => {
   console.log('✅ MongoDB connected');
-  await initAuth();
-  console.log('✅ Better Auth initialized');
   console.log('👨‍💼 Admin Email:', process.env.ADMIN_EMAIL || 'not-set');
-  console.log('📧 Email/Password auth: ✅');
   // Test SMTP connection on startup
   try {
     const { verifyTransporter } = require('./utils/email');
@@ -633,7 +578,7 @@ mongoose.connect(MONGODB_URI, {
   server.listen(PORT, process.env.HOSTNAME || '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`🌐 Environment: ${process.env.NODE_ENV}`);
-    console.log(`🔐 Authentication: Better Auth v1.2.7`);
+    console.log(`🔐 Authentication: Disabled`);
   });
 })
 .catch(err => {

@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import AuthGuard from '@/components/shared/AuthGuard';
 import { HomeHeader, HomeFooter, SectionTitle } from '@/components/homepage/site-chrome';
 import {
   Shield, Users, Package, FileBarChart, TrendingUp, Settings,
@@ -22,11 +21,7 @@ const NAV = [
 const IMG = '/homepage/admin';
 
 export default function AdminHomePage() {
-  return (
-    <AuthGuard roles={['admin']}>
-      <AdminHome />
-    </AuthGuard>
-  );
+  return <AdminHome />;
 }
 
 function AdminHome() {

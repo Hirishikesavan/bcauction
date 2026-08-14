@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import AuthGuard from '@/components/shared/AuthGuard';
 import api, { imgUrl } from '@/lib/api';
 import { fmt } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -315,8 +314,7 @@ export default function ReportsPage() {
   const LBL = 'block text-[10px] font-heading uppercase tracking-wider text-muted-foreground mb-1.5';
 
   return (
-    <AuthGuard roles={['organizer','admin','team_owner','viewer']}>
-      <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative">
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "url('/bg-organizer.png')", backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.15 }} />
         <div className="relative p-6 max-w-7xl mx-auto">
           <div className="mb-4"><BackButton href="/dashboard/organizer" label="Organizer Dashboard" /></div>
@@ -583,6 +581,5 @@ export default function ReportsPage() {
           )}
         </div>
       </div>
-    </AuthGuard>
   );
 }

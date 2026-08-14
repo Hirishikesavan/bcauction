@@ -3,8 +3,7 @@ import { Clapperboard, Trophy, Eye, Check } from 'lucide-react';
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { authClient } from '@/lib/auth-client';
-import { getRoleRedirect } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 import GoldParticles from '@/components/beast/GoldParticles';
 import FireSparkles  from '@/components/beast/FireSparkles';
 import BeastLogo     from '@/components/beast/BeastLogo';
@@ -15,9 +14,15 @@ const ROLES = [
   { id: 'viewer',     label: 'Viewer',     Icon: Eye,          desc: 'Watch auctions live in real-time',   color: '#34d399' },
 ];
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/api$/, '');
+// Route mapping for each role
+const ROLE_ROUTES: Record<string, string> = {
+  organizer: '/organizer-home',
+  team_owner: '/team-owner-home',
+  viewer: '/viewer-home',
+};
 
 export default function SelectRolePage() {
+  const router = useRouter();
   const [selected, setSelected] = useState('');
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
@@ -25,39 +30,20 @@ export default function SelectRolePage() {
   const handleContinue = async () => {
     if (!selected) { setError('Please select a role to continue'); return; }
     setLoading(true); setError('');
+
     try {
-      console.log(' [SelectRole] Setting role:', selected);
-      const s    = await authClient.getSession();
-      const user = s?.data?.user as any;
-      if (!user) { window.location.href = '/login?error=no-session'; return; }
+      console.log(' [SelectRole] Selected role:', selected);
 
-      console.log(' [SelectRole] User session:', user.email, 'current role:', user.role);
+      // Store selected role in localStorage for reference (optional)
+      localStorage.setItem('selected_role', selected);
 
-      const res = await fetch(`${API_BASE}/api/user/set-role`, {
-        method:      'POST',
-        headers:     { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body:        JSON.stringify({ role: selected }),
-      });
-
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        throw new Error(d.error || 'Failed to save role');
-      }
-
-      console.log(' [SelectRole] Role set successfully:', selected);
-      // Store role in localStorage — AuthGuard reads this while session cache refreshes
-      localStorage.setItem(`role_set_${user.id}`, selected);
-      localStorage.setItem('pending_role', selected);
-      console.log(' [SelectRole] localStorage updated:', selected);
-
-      const redirectUrl = getRoleRedirect(selected);
+      // Navigate to the appropriate dashboard based on role
+      const redirectUrl = ROLE_ROUTES[selected];
       console.log(' [SelectRole] Redirecting to:', redirectUrl);
-      // HARD redirect — destroys React session cache so AuthGuard reads fresh session
-      window.location.href = redirectUrl;
+      router.push(redirectUrl);
     } catch (err: any) {
       console.error(' [SelectRole] Error:', err);
-      setError(err.message || 'Failed to set role. Please try again.');
+      setError(err.message || 'Failed to navigate. Please try again.');
       setLoading(false);
     }
   };

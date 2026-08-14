@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import AuthGuard from '@/components/shared/AuthGuard';
 import api from '@/lib/api';
 import BackButton from '@/components/shared/BackButton';
 import toast from 'react-hot-toast';
@@ -60,8 +59,7 @@ export default function StreamingSettings() {
   );
 
   return (
-    <AuthGuard roles={['organizer','admin']}>
-      <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative">
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage:"url('/bg-organizer.png')", backgroundSize:'cover', opacity: 0.1 }} />
         <div className="relative p-6 max-w-4xl mx-auto">
           <div className="mb-4"><BackButton href="/dashboard/organizer" label="Back" /></div>
@@ -212,6 +210,5 @@ export default function StreamingSettings() {
           )}
         </div>
       </div>
-    </AuthGuard>
   );
 }
