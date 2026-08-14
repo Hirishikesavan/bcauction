@@ -15,11 +15,37 @@ const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'hirishi2020@gmail.com').toLower
 const setRole = (userId, role) =>
   User.updateOne({ _id: userId }, { $set: { role } });
 
-// ── ROLE-BASED SESSION CREATION ─────────────────────────────────
-// Creates a Better Auth session for role-based access without email/password
-// This is used by the role selection page to establish a session
-// NOTE: This endpoint is mounted at /api/role-session to avoid conflict with Better Auth's /api/auth/* routes
+// ── UPDATE ROLE ─────────────────────────────────────────
+// Updates the role of the authenticated user
+router.post('/update-role', authenticate, async (req, res) => {
+  try {
+    const { role } = req.body;
 
+    if (!role || !['organizer', 'team_owner', 'viewer', 'admin'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role.' });
+    }
+
+    const { getDb } = require('../lib/auth');
+    const db = getDb();
+
+    if (!db) {
+      return res.status(500).json({ error: 'Database not available' });
+    }
+
+    // Update role in Better Auth user collection
+    await db.collection('user').updateOne(
+      { id: req.user.id },
+      { $set: { role: role, updatedAt: new Date() } }
+    );
+
+    console.log('[AUTH] Updated role for user:', req.user.id, 'to:', role);
+
+    return res.json({ success: true, role });
+  } catch (err) {
+    console.error('[AUTH] Update role error:', err);
+    return res.status(500).json({ error: 'Failed to update role' });
+  }
+});
 
 // ── REGISTER ─────────────────────────────────────────
 router.post('/register', async (req, res) => {

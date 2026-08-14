@@ -35,21 +35,49 @@ export default function SelectRolePage() {
     try {
       console.log('[AUTH] Creating session for role:', selected);
 
-      // Create Better Auth session for the selected role
-      const response = await api.post('/role-session/create', { role: selected });
+      // Generate unique guest email and password for this session
+      const guestId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const guestEmail = `guest-${guestId}@beastcricket.local`;
+      const guestPassword = guestId;
 
-      if (response.data.success) {
-        console.log('[AUTH] Session created successfully:', response.data.user);
-        
-        // Store selected role in localStorage for reference
-        localStorage.setItem('selected_role', selected);
+      // Use Better Auth's standard sign-up endpoint
+      const signUpResponse = await api.post('/auth/sign-up/email', {
+        email: guestEmail,
+        password: guestPassword,
+        name: `${selected.charAt(0).toUpperCase() + selected.slice(1)} User`,
+      });
 
-        // Navigate to the appropriate dashboard based on role
-        const redirectUrl = ROLE_ROUTES[selected];
-        console.log('[AUTH] Redirecting to:', redirectUrl);
-        router.push(redirectUrl);
+      if (signUpResponse.data) {
+        console.log('[AUTH] Sign up successful:', signUpResponse.data);
+
+        // Update role in database via direct API call
+        try {
+          await api.post('/auth/update-role', { role: selected });
+        } catch (roleErr) {
+          console.log('[AUTH] Role update failed, will try sign-in:', roleErr);
+        }
+
+        // Sign in to create session
+        const signInResponse = await api.post('/auth/sign-in/email', {
+          email: guestEmail,
+          password: guestPassword,
+        });
+
+        if (signInResponse.data) {
+          console.log('[AUTH] Sign in successful:', signInResponse.data);
+          
+          // Store selected role in localStorage for reference
+          localStorage.setItem('selected_role', selected);
+
+          // Navigate to the appropriate dashboard based on role
+          const redirectUrl = ROLE_ROUTES[selected];
+          console.log('[AUTH] Redirecting to:', redirectUrl);
+          router.push(redirectUrl);
+        } else {
+          throw new Error('Sign in failed');
+        }
       } else {
-        throw new Error(response.data.error || 'Failed to create session');
+        throw new Error('Sign up failed');
       }
     } catch (err: any) {
       console.error('[AUTH] Session creation error:', err);
