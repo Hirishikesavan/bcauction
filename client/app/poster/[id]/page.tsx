@@ -62,7 +62,8 @@ export default function PosterGenerator() {
     }
   }, [id, user]);
 
-  const isElite = user?.role === 'admin' || orgPkg?.packageType === 'elite';
+  // ELITE ACCESS: All organizers have full Elite access for production auction
+  const isElite = true;
 
   const generatePoster = async () => {
     if (!selTeam) { toast.error('Select a team first'); return; }

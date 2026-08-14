@@ -627,12 +627,13 @@ function OrganizerDashboard() {
   // Package status bar (admin bypass)
   // Admin detection: check role OR email as fallback
   const ADMIN_EMAILS = ['hirishidraj07@gmail.com', 'hirishi2020@gmail.com'];
+  // ELITE ACCESS: All organizers have full Elite access for production auction
   const isAdmin = user?.role === 'admin' || (user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase()));
   const pkgInfo = orgPackage ? PACKAGES_INFO[orgPackage.packageType] : null;
   const pkgPercent = orgPackage ? Math.min(100, orgPackage.auctionsAllowed >= 999 ? Math.min(100, orgPackage.auctionsUsed * 10) : Math.round((orgPackage.auctionsUsed / Math.max(1, orgPackage.auctionsAllowed)) * 100)) : 0;
-  // Admin always has Pro and Elite access regardless of package state
-  const isPro    = isAdmin || ['pro','elite'].includes(orgPackage?.packageType);
-  const isElite  = isAdmin || orgPackage?.packageType === 'elite';
+  // All organizers have Pro and Elite access for production auction
+  const isPro    = true;
+  const isElite  = true;
 
   // Debug logging for admin package issue
   useEffect(() => {

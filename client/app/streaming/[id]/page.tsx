@@ -37,9 +37,8 @@ export default function StreamingSettings() {
     }
   }, [id, user]);
 
-  const ADMIN_EMAILS = ['hirishidraj07@gmail.com', 'hirishi2020@gmail.com'];
-  const isAdmin = user?.role === 'admin' || (user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase()));
-  const isElite = isAdmin || orgPkg?.packageType === 'elite';
+  // ELITE ACCESS: All organizers have full Elite access for production auction
+  const isElite = true;
   const broadcastUrl = typeof window !== 'undefined' ? `${window.location.origin}/broadcast/${id}` : `/broadcast/${id}`;
   const audienceUrl  = typeof window !== 'undefined' ? `${window.location.origin}/audience/${id}` : `/audience/${id}`;
 

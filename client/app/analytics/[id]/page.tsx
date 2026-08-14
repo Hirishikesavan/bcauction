@@ -43,8 +43,9 @@ export default function AnalyticsPage() {
       .finally(() => setLoading(false));
   }, [selAuction?._id]);
 
-  const isPro = user?.role === 'admin' || ['pro','elite'].includes(orgPkg?.packageType);
-  const isElite = user?.role === 'admin' || orgPkg?.packageType === 'elite';
+  // ELITE ACCESS: All organizers have full Elite access for production auction
+  const isPro = true;
+  const isElite = true;
 
   const fetchAi = async (type: string) => {
     if (!selAuction) return;
