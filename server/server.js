@@ -182,7 +182,9 @@ const _adminRoleEnforce = async (req, res, next) => {
 // ── API Routes ──────────────────────────────
 // Apply admin role enforcement middleware to ALL API routes
 app.use('/api', _adminRoleEnforce);
-app.use('/api/auth', require('./routes/auth')); // Legacy auth routes + update-role endpoint
+// Better Auth handles /api/auth/* automatically via its basePath configuration
+// Do NOT mount legacy auth router at /api/auth as it conflicts with Better Auth
+app.use('/api/user', require('./routes/auth')); // Mount legacy auth routes at /api/user for update-role endpoint
 app.use('/api/auctions', require('./routes/auctions'));
 app.use('/api/teams',    require('./routes/teams'));
 app.use('/api/admin',    require('./routes/admin'));

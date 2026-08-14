@@ -52,7 +52,7 @@ export default function SelectRolePage() {
 
         // Update role in database via direct API call
         try {
-          await api.post('/auth/update-role', { role: selected });
+          await api.post('/user/update-role', { role: selected });
         } catch (roleErr) {
           console.log('[AUTH] Role update failed, will try sign-in:', roleErr);
         }
