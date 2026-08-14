@@ -1,25 +1,30 @@
 'use strict';
-// Authentication removed - stub functions for compatibility
+// Canonical Better Auth implementation - single source of truth for authentication
 
+const mongoose = require('mongoose');
+let _authInstance = null;
 let _db = null;
 
 const initAuth = async () => {
-  // No-op - authentication disabled
-  return null;
+  // Import the real Better Auth instance from auth.ts
+  if (!_authInstance) {
+    const authModule = require('./auth.ts');
+    _authInstance = authModule.auth;
+  }
+  return _authInstance;
 };
 
 const getAuth = () => {
-  // Return stub object with getSession method for compatibility
-  // This prevents "Cannot read property 'getSession' of null" errors
-  return {
-    api: {
-      getSession: async () => null // No session - authentication disabled
-    }
-  };
+  // Import and return the real Better Auth instance
+  if (!_authInstance) {
+    const authModule = require('./auth.ts');
+    _authInstance = authModule.auth;
+  }
+  return _authInstance;
 };
 
 const getDb = () => {
-  // Return mongoose connection instead
+  // Return mongoose connection for direct DB access
   if (!_db && mongoose.connection.readyState === 1) {
     _db = mongoose.connection.db;
   }

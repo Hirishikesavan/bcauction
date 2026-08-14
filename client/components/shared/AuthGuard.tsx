@@ -6,18 +6,9 @@ import { useAuth, getRoleRedirect } from '@/hooks/useAuth';
 const ADMIN_EMAIL = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'hirishi2020@gmail.com').toLowerCase();
 
 function getEffectiveRole(user: any): string {
-  // Authentication removed - use localStorage selected_role from role selection page
-  const selectedRole = typeof window !== 'undefined' ? localStorage.getItem('selected_role') : null;
-  
-  // If user explicitly selected a role, use that
-  if (selectedRole && selectedRole !== '1' && selectedRole !== '') {
-    return selectedRole;
-  }
-
-  // Fallback to user role if available
   if (!user) return '';
 
-  // Admin email ALWAYS gets admin role
+  // Admin email ALWAYS gets admin role — force it regardless of what session says
   if (user.email && user.email.toLowerCase() === ADMIN_EMAIL) {
     if (user.id) {
       localStorage.setItem(`role_set_${user.id}`, 'admin');
@@ -27,20 +18,23 @@ function getEffectiveRole(user: any): string {
   }
   if (user.role === 'admin') return 'admin';
 
-  // Check localStorage for stored role
-  const storedByUserId = user.id ? localStorage.getItem(`role_set_${user.id}`) : null;
-  const pendingRole    = localStorage.getItem('pending_role');
-
-  if (storedByUserId && storedByUserId !== '1' && storedByUserId !== '') {
-    return storedByUserId;
-  }
-
+  // Use the canonical role from the authenticated session
+  // This comes from Better Auth and is the single source of truth
   if (user.role && user.role !== '1' && user.role !== '') {
+    // Sync localStorage so future checks are consistent
     if (user.id) {
       localStorage.setItem(`role_set_${user.id}`, user.role);
     }
     localStorage.setItem('pending_role', user.role);
     return user.role;
+  }
+
+  // Check localStorage for stored role (fallback)
+  const storedByUserId = user.id ? localStorage.getItem(`role_set_${user.id}`) : null;
+  const pendingRole    = localStorage.getItem('pending_role');
+
+  if (storedByUserId && storedByUserId !== '1' && storedByUserId !== '') {
+    return storedByUserId;
   }
 
   if (pendingRole && pendingRole !== '1' && pendingRole !== '') {
@@ -63,15 +57,7 @@ export default function AuthGuard({
   useEffect(() => {
     if (loading || didRedirect.current) return;
 
-    // Authentication removed - no login redirect
-    // If no user, check if role was selected via role selection page
     if (!user) {
-      const selectedRole = typeof window !== 'undefined' ? localStorage.getItem('selected_role') : null;
-      if (selectedRole) {
-        // User selected a role but no auth session - allow through
-        return;
-      }
-      // No role selected, redirect to role selection
       didRedirect.current = true;
       window.location.href = '/select-role';
       return;
@@ -92,7 +78,7 @@ export default function AuthGuard({
       return;
     }
 
-    // Wrong role — redirect to correct homepage based on selected role
+    // Wrong role — redirect to correct homepage
     didRedirect.current = true;
     window.location.href = getRoleRedirect(effectiveRole);
   }, [user, loading, roles]);
@@ -106,12 +92,6 @@ export default function AuthGuard({
         </div>
       </div>
     );
-  }
-
-  // Authentication removed - allow through if role is selected in localStorage
-  const selectedRole = typeof window !== 'undefined' ? localStorage.getItem('selected_role') : null;
-  if (!user && selectedRole) {
-    return <>{children}</>;
   }
 
   if (!user) return null;

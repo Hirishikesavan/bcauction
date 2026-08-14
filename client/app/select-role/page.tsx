@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import GoldParticles from '@/components/beast/GoldParticles';
 import FireSparkles  from '@/components/beast/FireSparkles';
 import BeastLogo     from '@/components/beast/BeastLogo';
+import api from '@/lib/api';
 
 const ROLES = [
   { id: 'organizer',  label: 'Organizer',  Icon: Clapperboard, desc: 'Create and manage cricket auctions', color: '#f59e0b' },
@@ -32,18 +33,27 @@ export default function SelectRolePage() {
     setLoading(true); setError('');
 
     try {
-      console.log(' [SelectRole] Selected role:', selected);
+      console.log('[AUTH] Creating session for role:', selected);
 
-      // Store selected role in localStorage for reference (optional)
-      localStorage.setItem('selected_role', selected);
+      // Create Better Auth session for the selected role
+      const response = await api.post('/auth/create-role-session', { role: selected });
 
-      // Navigate to the appropriate dashboard based on role
-      const redirectUrl = ROLE_ROUTES[selected];
-      console.log(' [SelectRole] Redirecting to:', redirectUrl);
-      router.push(redirectUrl);
+      if (response.data.success) {
+        console.log('[AUTH] Session created successfully:', response.data.user);
+        
+        // Store selected role in localStorage for reference
+        localStorage.setItem('selected_role', selected);
+
+        // Navigate to the appropriate dashboard based on role
+        const redirectUrl = ROLE_ROUTES[selected];
+        console.log('[AUTH] Redirecting to:', redirectUrl);
+        router.push(redirectUrl);
+      } else {
+        throw new Error(response.data.error || 'Failed to create session');
+      }
     } catch (err: any) {
-      console.error(' [SelectRole] Error:', err);
-      setError(err.message || 'Failed to navigate. Please try again.');
+      console.error('[AUTH] Session creation error:', err);
+      setError(err.response?.data?.error || err.message || 'Failed to create session. Please try again.');
       setLoading(false);
     }
   };
