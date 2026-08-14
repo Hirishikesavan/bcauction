@@ -6,14 +6,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { HomeHeader, HomeFooter, SectionTitle } from '@/components/homepage/site-chrome';
 import { TermsModal } from '@/components/beast/TermsModal';
 import {
-  Trophy, Users, Shield, IndianRupee, ClipboardList, CalendarPlus, UserPlus, Wallet,
-  Gavel, FileBarChart, Award, Star, CheckCircle2, Lock, MousePointerClick, Headphones,
+  Trophy, Users, Shield, IndianRupee, CalendarPlus, UserPlus, Wallet,
+  Gavel, FileBarChart, CheckCircle2, Lock, MousePointerClick, Headphones,
 } from 'lucide-react';
 import '@/app/homepage-theme.css';
 
 const NAV = [
   { label: 'Features', hash: '#features' },
-  { label: 'Packages', hash: '#packages' },
   { label: 'AI Features', hash: '#ai' },
   { label: 'How It Works', hash: '#how' },
   { label: 'Contact', hash: '#contact' },
@@ -48,7 +47,6 @@ function OrganizerHome() {
             <p className="mt-5 text-lg text-white/90 max-w-md">Create, Manage &amp; Broadcast<br />Professional Cricket Auctions</p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/dashboard/organizer" className="btn-gold btn-gold-hover px-6 py-3 text-sm inline-flex items-center gap-2">Go to Dashboard →</Link>
-              <a href="#packages" className="btn-outline-gold px-6 py-3 text-sm">View Packages</a>
             </div>
           </div>
         </div>
@@ -75,9 +73,8 @@ function OrganizerHome() {
 
       <section id="how" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionTitle>How It Works for Organizers</SectionTitle>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {[
-            { i: ClipboardList, t: 'Choose Package' },
             { i: CalendarPlus, t: 'Create Auction' },
             { i: UserPlus, t: 'Invite Teams' },
             { i: Users, t: 'Register Players' },
@@ -94,28 +91,8 @@ function OrganizerHome() {
         </div>
       </section>
 
-      <section id="packages" className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SectionTitle>Choose Your Perfect Plan</SectionTitle>
-        <div className="grid md:grid-cols-3 gap-6">
-          <PlanCard name="STARTER" price="2999" tagline="Perfect for Small Tournaments"
-            badge={<Badge icon={Award} color="bg-amber-700" />}
-            features={['3 Auctions / Year', '20 Teams', '300 Players', 'Live Auction System', 'Team Management', 'Player Management', 'Unsold Player Round', 'Basic Dashboard', 'Email Notifications']}
-            cta="Go to Dashboard" ctaStyle="outline" />
-          <PlanCard name="PRO" price="5999" tagline="Ideal for Growing Leagues" popular
-            badge={<Badge icon={Star} color="bg-slate-400" />}
-            heading="Everything in Starter +"
-            features={['RTM (Right To Match)', 'Player Registration Form', 'Player Fee Collection', 'Team Wallet', 'Razorpay Payments', 'PDF & Excel Export', 'Bulk Import (Excel)', 'Auction Replay', 'WhatsApp Notifications', 'Organizer Squad PDF Report', 'Team Owner Squad PDF Report', 'Advanced Analytics', 'Budget Utilization Report']}
-            cta="Go to Dashboard" ctaStyle="gold" />
-          <PlanCard name="ELITE" price="9999" tagline="For Champions"
-            badge={<Badge icon={Trophy} color="bg-[var(--gold)]" best />}
-            heading="Everything in Pro +"
-            features={['Broadcast Screen', 'Auction Audience Screen', 'Custom Branding', 'Sponsor Ads', 'AI Assisted Auction', 'OBS Compatible Broadcast', 'YouTube Live Support', 'Premium Squad PDF Layout', 'Team Poster Generator', 'Social Media Squad Posters', 'Priority Support']}
-            cta="Go to Dashboard" ctaStyle="outline" />
-        </div>
-      </section>
-
       <section id="ai" className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SectionTitle>AI Assisted Auction (Elite)</SectionTitle>
+        <SectionTitle>AI Assisted Auction</SectionTitle>
         <p className="text-center text-white/60 -mt-6 mb-8">Smart AI tools to help you run data-driven and successful auctions</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {[

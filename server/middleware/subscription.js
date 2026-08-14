@@ -1,14 +1,15 @@
 'use strict';
 // ═══════════════════════════════════════════════════════════════
-// SUBSCRIPTION ENFORCEMENT MIDDLEWARE
-// All limits enforced server-side — frontend hiding is NOT enough.
+// SUBSCRIPTION ENFORCEMENT MIDDLEWARE - DISABLED
+// All subscription restrictions removed for free, fully unlocked deployment.
+// Beast Cricket Auction operates as a completely free platform.
 // ═══════════════════════════════════════════════════════════════
 const OrganizerPackage = require('../models/OrganizerPackage');
 const Auction  = require('../models/Auction');
 const Team     = require('../models/Team');
 const Player   = require('../models/Player');
 
-// ── Plan definitions (single source of truth) ────────────────
+// ── Plan definitions (retained for reference, not enforced) ────────────────
 const PLANS = {
   starter: {
     name: 'Starter', price: 299900, // ₹2999
@@ -67,126 +68,34 @@ const getOrgPlan = async (organizerId) => {
 };
 module.exports.getOrgPlan = getOrgPlan;
 
-// ── REQUIRE PLAN ─────────────────────────────────────────────
+// ── REQUIRE PLAN - DISABLED (always allow) ─────────────────────────────────────
 module.exports.requirePlan = async (req, res, next) => {
-  if (!req.user || req.user.role === 'admin') return next();
-  const result = await getOrgPlan(req.user.id);
-  if (!result) {
-    return res.status(403).json({
-      error: 'No active subscription. Please purchase a plan to continue.',
-      needsPlan: true, code: 'NO_PLAN',
-    });
-  }
-  req.orgPlan = result;
+  // Subscription restrictions disabled - all users have full access
   return next();
 };
 
-// ── CHECK AUCTION LIMIT ───────────────────────────────────────
+// ── CHECK AUCTION LIMIT - DISABLED (no limits) ───────────────────────────────────────
 module.exports.checkAuctionLimit = async (req, res, next) => {
-  if (!req.user || req.user.role === 'admin') return next();
-  try {
-    const result = await getOrgPlan(req.user.id);
-    if (!result) {
-      return res.status(403).json({
-        error: 'No active subscription. Please purchase a plan.',
-        needsPlan: true, code: 'NO_PLAN',
-      });
-    }
-    const { pkg, plan } = result;
-    if (pkg.auctionsUsed >= pkg.auctionsAllowed) {
-      return res.status(403).json({
-        error: `Auction limit reached (${pkg.auctionsAllowed}). Upgrade your plan.`,
-        code: 'AUCTION_LIMIT', limit: pkg.auctionsAllowed, used: pkg.auctionsUsed, upgrade: true,
-      });
-    }
-    req.orgPlan = result;
-    return next();
-  } catch (err) {
-    return res.status(500).json({ error: 'Subscription check failed: ' + err.message });
-  }
+  // Auction limits disabled - unlimited auctions for all users
+  return next();
 };
 
-// ── CHECK TEAM LIMIT ──────────────────────────────────────────
+// ── CHECK TEAM LIMIT - DISABLED (no limits) ──────────────────────────────────────────
 module.exports.checkTeamLimit = async (req, res, next) => {
-  if (!req.user || req.user.role === 'admin') return next();
-  try {
-    const { id: auctionId } = req.params;
-    const result = await getOrgPlan(req.user.id);
-    if (!result) return next();
-    const { plan } = result;
-    if (plan.maxTeams === Infinity) return next();
-    const count = await Team.countDocuments({ auctionId });
-    if (count >= plan.maxTeams) {
-      return res.status(403).json({
-        error: `${plan.name} Plan allows only ${plan.maxTeams} teams per auction.`,
-        code: 'TEAM_LIMIT', limit: plan.maxTeams, current: count, upgrade: true,
-      });
-    }
-    req.orgPlan = result;
-    return next();
-  } catch (err) {
-    return res.status(500).json({ error: 'Subscription check failed: ' + err.message });
-  }
+  // Team limits disabled - unlimited teams for all users
+  return next();
 };
 
-// ── CHECK PLAYER LIMIT ────────────────────────────────────────
+// ── CHECK PLAYER LIMIT - DISABLED (no limits) ────────────────────────────────────────
 module.exports.checkPlayerLimit = async (req, res, next) => {
-  if (!req.user || req.user.role === 'admin') return next();
-  try {
-    const { id: auctionId } = req.params;
-    const auction = await Auction.findById(auctionId).select('organizerId');
-    if (!auction) return next();
-    const result = await getOrgPlan(auction.organizerId);
-    if (!result) return next();
-    const { plan } = result;
-    if (plan.maxPlayers === Infinity) return next();
-    const count = await Player.countDocuments({ auctionId });
-    if (count >= plan.maxPlayers) {
-      return res.status(403).json({
-        error: `${plan.name} Plan allows only ${plan.maxPlayers} players per auction.`,
-        code: 'PLAYER_LIMIT', limit: plan.maxPlayers, current: count, upgrade: true,
-      });
-    }
-    return next();
-  } catch (err) {
-    return res.status(500).json({ error: 'Subscription check failed: ' + err.message });
-  }
+  // Player limits disabled - unlimited players for all users
+  return next();
 };
 
-// ── CHECK FEATURE ACCESS ──────────────────────────────────────
+// ── CHECK FEATURE ACCESS - DISABLED (all features unlocked) ──────────────────────────────────────
 module.exports.requireFeature = (feature) => async (req, res, next) => {
-  if (!req.user || req.user.role === 'admin') return next();
-  try {
-    let result;
-    
-    // For team owners, check the auction's organizer's plan instead of their own
-    if (req.user.role === 'team_owner' && req.params.auctionId) {
-      const Auction = require('../models/Auction');
-      const auction = await Auction.findById(req.params.auctionId).select('organizerId');
-      if (auction) {
-        result = await getOrgPlan(auction.organizerId);
-      }
-    } else {
-      result = await getOrgPlan(req.user.id);
-    }
-    
-    if (!result) {
-      return res.status(403).json({ error: 'No active subscription.', needsPlan: true });
-    }
-    const { plan } = result;
-    if (!plan.features[feature]) {
-      const eliteFeatures = ['broadcastScreen','audienceScreen','customBranding','sponsorAds','aiFeatures','obsIntegration','youtubeLive','zoomIntegration','teamPoster','premiumPDF','socialPosters'];
-      const upgradeTo = eliteFeatures.includes(feature) ? 'Elite' : 'Pro';
-      return res.status(403).json({
-        error: `This feature requires the ${upgradeTo} plan or higher.`,
-        code: 'FEATURE_LOCKED', feature, requiredPlan: upgradeTo, upgrade: true,
-      });
-    }
-    req.orgPlan = result;
-    return next();
-  } catch (err) {
-    return res.status(500).json({ error: 'Subscription check failed: ' + err.message });
-  }
+  // Feature restrictions disabled - all features unlocked for all users
+  return next();
 };
 
 // ── ROBUST PACKAGE LOOKUP ─────────────────────────────────────

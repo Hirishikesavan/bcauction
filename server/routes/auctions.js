@@ -18,6 +18,7 @@ const Bid = require('../models/Bid');
 const RTM = require('../models/RTM');
 const User = require('../models/User');
 const { authenticate, authorize, optionalAuth } = require('../middleware/auth');
+// Subscription middleware disabled - all features unlocked
 const { checkTeamLimit, checkPlayerLimit, requireFeature } = require('../middleware/subscription');
 const { promoteToTeamOwner } = require('../utils/promoteRole');
 

@@ -11,6 +11,7 @@ const Payment  = require('../models/Payment');
 const CustomBranding = require('../models/CustomBranding');
 const User = require('../models/User');
 const { authenticate, authorize } = require('../middleware/auth');
+// Subscription middleware disabled - all features unlocked
 const { requireFeature } = require('../middleware/subscription');
 const { getMulterStorage, getImageUrl, deleteUploadedImage } = require('../utils/cloudinary');
 const { getAuth, getDb } = require('../lib/auth');
