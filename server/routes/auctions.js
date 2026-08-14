@@ -199,6 +199,9 @@ router.get('/:id/plan', optionalAuth, async (req, res) => {
 // Create auction
 router.post('/', authenticate, authorize('organizer','admin'), async (req, res) => {
   try {
+    console.log('POST /auctions - Request body:', req.body);
+    console.log('POST /auctions - User:', req.user);
+
     const { name, description, date, bidTimer, bidIncrement, totalPursePerTeam, maxTeams,
             rtmEnabled, rtmPerTeam, registrationFeeEnabled, registrationFee,
             teamOwnerFeeEnabled, teamOwnerFee } = req.body;
@@ -224,7 +227,9 @@ router.post('/', authenticate, authorize('organizer','admin'), async (req, res) 
       teamOwnerFeeEnabled: teamOwnerFeeEnabled === 'true' || teamOwnerFeeEnabled === true,
       teamOwnerFee: parseInt(teamOwnerFee)||0,
     });
+    console.log('POST /auctions - Auction object before save:', auction);
     await auction.save();
+    console.log('POST /auctions - Auction saved successfully:', auction._id);
 
     // Package usage increment removed - Beast Cricket now operates as a completely free, fully unlocked platform
 
@@ -243,7 +248,10 @@ router.post('/', authenticate, authorize('organizer','admin'), async (req, res) 
     }
 
     res.status(201).json({ success: true, auction });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    console.error('POST /auctions - Error:', e);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 router.put('/:id', authenticate, authorize('organizer','admin'), async (req, res) => {

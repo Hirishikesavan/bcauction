@@ -416,6 +416,7 @@ function OrganizerDashboard() {
     try {
       // If user has active package, create auction directly without payment
       // Only require payment if user doesn't have a package or limit is reached (checked above)
+      console.log('Creating auction with data:', aForm);
       const r = await api.post('/auctions', {
         ...aForm,
         registrationFeeEnabled: aForm.registrationFeeEnabled,
@@ -423,6 +424,7 @@ function OrganizerDashboard() {
         teamOwnerFeeEnabled: aForm.teamOwnerFeeEnabled,
         teamOwnerFee: aForm.teamOwnerFeeEnabled ? parseInt(aForm.teamOwnerFee) : 0,
       });
+      console.log('Auction created successfully:', r.data);
       const newAuction = r.data.auction;
       setAuctions(p => [newAuction, ...p]);
       setSel(newAuction);
@@ -430,7 +432,9 @@ function OrganizerDashboard() {
       setTab('players');
       resetAForm();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to create auction');
+      console.error('Auction creation error:', err);
+      console.error('Error response:', err.response?.data);
+      toast.error(err.response?.data?.error || err.message || 'Failed to create auction');
     } finally { setLoading(false); }
   };
 
