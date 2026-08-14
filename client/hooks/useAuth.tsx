@@ -1,7 +1,6 @@
 'use client';
 
 import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
-import api from '@/lib/api';
 
 export interface BAUser {
   id: string;
@@ -24,20 +23,12 @@ const Ctx = createContext<AuthCtx | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<BAUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // No-auth mode - no loading state
 
   const fetchUser = useCallback(async () => {
-    try {
-      const response = await api.get('/auth/me');
-      if (response.data.success && response.data.user) {
-        setUser(response.data.user);
-      }
-    } catch (err) {
-      console.log('[AUTH] No session or failed to fetch user:', err);
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
+    // No-auth mode - do not fetch user from backend
+    // User role is determined by localStorage selected_role
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -45,12 +36,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [fetchUser]);
 
   const logout = useCallback(async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch (err) {
-      console.error('[AUTH] Logout error:', err);
-    }
-    window.location.href = '/';
+    // No-auth mode - clear localStorage and redirect to role selection
+    localStorage.removeItem('selected_role');
+    window.location.href = '/select-role';
   }, []);
 
   const refetch = useCallback(() => {
@@ -69,9 +57,10 @@ export const useAuth = () => {
   if (!c) {
     return {
       user: null,
-      loading: true,
+      loading: false,
       logout: async () => {
-        window.location.href = '/';
+        localStorage.removeItem('selected_role');
+        window.location.href = '/select-role';
       },
       refetch: () => {},
     };

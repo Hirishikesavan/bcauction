@@ -43,13 +43,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && typeof window !== 'undefined') {
-      const p = window.location.pathname;
-      const pub = ['/login', '/register', '/verify-email', '/forgot-password', '/reset-password', '/auctions'];
-      if (!pub.some(pp => p.startsWith(pp)) && p !== '/') {
-        window.location.href = '/login';
-      }
-    }
+    // Authentication interceptor removed - no-auth mode for production
+    // Do not redirect to login on 401 errors
     return Promise.reject(err);
   }
 );

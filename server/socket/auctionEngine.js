@@ -28,39 +28,24 @@ const commentaryBank = {
   ],
 };
 
-// Authenticate a socket connection using Better Auth session cookie
+// Authenticate a socket connection - no-auth mode for production
 const authenticateSocket = async (socket) => {
   try {
-    const authInstance = getAuth();
-    // Build a minimal headers object from the socket handshake
-    const headers = {
-      cookie: socket.handshake.headers.cookie || '',
-      authorization: socket.handshake.headers.authorization || '',
+    // No-auth mode - allow connections without Better Auth session
+    // Return a default user object for compatibility
+    return {
+      id: 'default-user',
+      email: 'user@beastcricket.local',
+      role: 'organizer', // Default role for no-auth mode
+      name: 'User',
     };
-    const session = await authInstance.api.getSession({ headers });
-    if (session?.user) {
-      // Ensure role is always up-to-date from DB, not just the session cache.
-      // This fixes team_owner showing as 'viewer' if set-role didn't flush the session.
-      if (!session.user.role || session.user.role === 'viewer') {
-        try {
-          const { MongoClient } = require('mongodb');
-          const c = new MongoClient(process.env.MONGODB_URI);
-          await c.connect();
-          const db = c.db('beast-cricket-auction');
-          const dbUser = await db.collection('user').findOne(
-            { $or: [{ id: session.user.id }, { _id: session.user.id }] },
-            { projection: { role: 1 } }
-          );
-          await c.close();
-          if (dbUser?.role && dbUser.role !== session.user.role) {
-            session.user.role = dbUser.role;
-          }
-        } catch { /* non-critical */ }
-      }
-      return session.user;
-    }
   } catch { /* anonymous ok */ }
-  return null;
+  return {
+    id: 'default-user',
+    email: 'user@beastcricket.local',
+    role: 'organizer',
+    name: 'User',
+  };
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

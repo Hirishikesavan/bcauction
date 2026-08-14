@@ -33,55 +33,18 @@ export default function SelectRolePage() {
     setLoading(true); setError('');
 
     try {
-      console.log('[AUTH] Creating session for role:', selected);
+      console.log('[ROLE] Selected role:', selected);
+      
+      // Store selected role in localStorage for UI routing
+      localStorage.setItem('selected_role', selected);
 
-      // Generate unique guest email and password for this session
-      const guestId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      const guestEmail = `guest-${guestId}@beastcricket.local`;
-      const guestPassword = guestId;
-
-      // Use Better Auth's standard sign-up endpoint
-      const signUpResponse = await api.post('/auth/sign-up/email', {
-        email: guestEmail,
-        password: guestPassword,
-        name: `${selected.charAt(0).toUpperCase() + selected.slice(1)} User`,
-      });
-
-      if (signUpResponse.data) {
-        console.log('[AUTH] Sign up successful:', signUpResponse.data);
-
-        // Update role in database via direct API call
-        try {
-          await api.post('/user/update-role', { role: selected });
-        } catch (roleErr) {
-          console.log('[AUTH] Role update failed, will try sign-in:', roleErr);
-        }
-
-        // Sign in to create session
-        const signInResponse = await api.post('/auth/sign-in/email', {
-          email: guestEmail,
-          password: guestPassword,
-        });
-
-        if (signInResponse.data) {
-          console.log('[AUTH] Sign in successful:', signInResponse.data);
-          
-          // Store selected role in localStorage for reference
-          localStorage.setItem('selected_role', selected);
-
-          // Navigate to the appropriate dashboard based on role
-          const redirectUrl = ROLE_ROUTES[selected];
-          console.log('[AUTH] Redirecting to:', redirectUrl);
-          router.push(redirectUrl);
-        } else {
-          throw new Error('Sign in failed');
-        }
-      } else {
-        throw new Error('Sign up failed');
-      }
+      // Navigate to the appropriate dashboard based on role
+      const redirectUrl = ROLE_ROUTES[selected];
+      console.log('[ROLE] Redirecting to:', redirectUrl);
+      router.push(redirectUrl);
     } catch (err: any) {
-      console.error('[AUTH] Session creation error:', err);
-      setError(err.response?.data?.error || err.message || 'Failed to create session. Please try again.');
+      console.error('[ROLE] Navigation error:', err);
+      setError(err.message || 'Failed to navigate. Please try again.');
       setLoading(false);
     }
   };

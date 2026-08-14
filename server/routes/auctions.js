@@ -90,7 +90,7 @@ router.get('/by-code/:code', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/join-by-code', authenticate, async (req, res) => {
+router.post('/join-by-code', async (req, res) => {
   try {
     const { code } = req.body;
     if (!code) return res.status(400).json({ error: 'Join code required' });
@@ -145,9 +145,10 @@ router.post('/join-by-code', authenticate, async (req, res) => {
 });
 
 // My auctions
-router.get('/my', authenticate, authorize('organizer','admin'), async (req, res) => {
+router.get('/my', async (req, res) => {
   try {
-    const filter = req.user.role === 'admin' ? {} : { organizerId: req.user.id };
+    // No-auth mode - return all auctions
+    const filter = {};
     const auctions = await Auction.find(filter).sort({ createdAt: -1 });
     res.json({ success: true, auctions });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -156,11 +157,10 @@ router.get('/my', authenticate, authorize('organizer','admin'), async (req, res)
 // FIX: team owners had no clean way to list "their" auctions for the
 // Reports / Poster pages — this returns every auction where the caller
 // owns a team.
-router.get('/participated', authenticate, authorize('team_owner','admin'), async (req, res) => {
+router.get('/participated', async (req, res) => {
   try {
-    const teams = await Team.find({ ownerId: req.user.id }).select('auctionId');
-    const auctionIds = [...new Set(teams.map(t => t.auctionId.toString()))];
-    const auctions = await Auction.find({ _id: { $in: auctionIds } }).sort({ createdAt: -1 });
+    // No-auth mode - return all auctions
+    const auctions = await Auction.find({}).sort({ createdAt: -1 });
     res.json({ success: true, auctions });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -197,24 +197,21 @@ router.get('/:id/plan', optionalAuth, async (req, res) => {
 });
 
 // Create auction
-router.post('/', authenticate, authorize('organizer','admin'), async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     console.log('POST /auctions - Request body:', req.body);
-    console.log('POST /auctions - User:', req.user);
 
     const { name, description, date, bidTimer, bidIncrement, totalPursePerTeam, maxTeams,
             rtmEnabled, rtmPerTeam, registrationFeeEnabled, registrationFee,
             teamOwnerFeeEnabled, teamOwnerFee } = req.body;
 
-    // If RTM is requested, check if user has Pro or Elite plan (skip for admin)
-    // RTM feature check removed - Beast Cricket now operates as a completely free, fully unlocked platform
-    // All features including RTM are available to all users
-
-    // Package quota check removed - Beast Cricket now operates as a completely free, fully unlocked platform
-    // All users can create auctions without any package requirement
+    // Authentication removed - Beast Cricket now operates as a completely free, fully unlocked platform
+    // All users can create auctions without authentication
+    // Generate a default organizer ID for no-auth mode
+    const organizerId = 'default-organizer';
 
     const auction = new Auction({
-      organizerId: req.user.id, name, description, date,
+      organizerId, name, description, date,
       bidTimer: parseInt(bidTimer)||30,
       bidIncrement: parseInt(bidIncrement)||500000,
       totalPursePerTeam: parseInt(totalPursePerTeam)||100000000,
@@ -231,8 +228,6 @@ router.post('/', authenticate, authorize('organizer','admin'), async (req, res) 
     await auction.save();
     console.log('POST /auctions - Auction saved successfully:', auction._id);
 
-    // Package usage increment removed - Beast Cricket now operates as a completely free, fully unlocked platform
-
     // Broadcast to everyone that a new auction exists
     const io = req.app.get('io');
     if (io) {
@@ -242,7 +237,7 @@ router.post('/', authenticate, authorize('organizer','admin'), async (req, res) 
           name:        auction.name,
           date:        auction.date,
           status:      auction.status,
-          organizerId: req.user.id,
+          organizerId: organizerId,
         },
       });
     }
@@ -254,18 +249,20 @@ router.post('/', authenticate, authorize('organizer','admin'), async (req, res) 
   }
 });
 
-router.put('/:id', authenticate, authorize('organizer','admin'), async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
-    const filter = req.user.role === 'admin' ? { _id: req.params.id } : { _id: req.params.id, organizerId: req.user.id };
+    // No-auth mode - allow update by ID only
+    const filter = { _id: req.params.id };
     const auction = await Auction.findOneAndUpdate(filter, req.body, { new: true });
     if (!auction) return res.status(404).json({ error: 'Not found' });
     res.json({ success: true, auction });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/:id', authenticate, authorize('organizer','admin'), async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const filter = req.user.role === 'admin' ? { _id: req.params.id } : { _id: req.params.id, organizerId: req.user.id };
+    // No-auth mode - allow delete by ID only
+    const filter = { _id: req.params.id };
     await Auction.findOneAndDelete(filter);
     await Player.deleteMany({ auctionId: req.params.id });
     await Team.deleteMany({ auctionId: req.params.id });
@@ -295,7 +292,7 @@ router.get('/:id/players', optionalAuth, async (req, res) => {
 });
 
 // ✅✅✅ CRITICAL FIX: Add new player with proper image handling ✅✅✅
-router.post('/:id/players', authenticate, authorize('organizer','admin'), checkPlayerLimit, upload.single('image'), async (req, res) => {
+router.post('/:id/players', upload.single('image'), async (req, res) => {
   try {
     const { name, role, category, nationality, age, basePrice, matches, runs, wickets, average, strikeRate, economy } = req.body;
 
@@ -466,7 +463,7 @@ router.post('/:id/players/public-register', async (req, res) => {
 });
 
 // Edit player
-router.put('/:id/players/:playerId', authenticate, authorize('organizer','admin'), upload.single('image'), async (req, res) => {
+router.put('/:id/players/:playerId', upload.single('image'), async (req, res) => {
   try {
     const { playerId } = req.params;
     const player = await Player.findById(playerId);
@@ -506,7 +503,7 @@ router.put('/:id/players/:playerId', authenticate, authorize('organizer','admin'
 });
 
 // Delete player
-router.delete('/:id/players/:playerId', authenticate, authorize('organizer','admin'), async (req, res) => {
+router.delete('/:id/players/:playerId', async (req, res) => {
   try {
     const player = await Player.findById(req.params.playerId);
     
@@ -544,26 +541,25 @@ router.get('/:id/teams', optionalAuth, async (req, res) => {
 });
 
 // Team owner creates their own team
-router.post('/:id/teams/self-register', authenticate, checkTeamLimit, upload.single('logo'), async (req, res) => {
+router.post('/:id/teams/self-register', upload.single('logo'), async (req, res) => {
   try {
     const auction = await Auction.findById(req.params.id);
     if (!auction) return res.status(404).json({ error: 'Auction not found' });
     if (auction.status === 'completed') return res.status(400).json({ error: 'Auction completed' });
 
     // Debug logging
-    console.log('🔍 Self-register debug:');
-    console.log('  User ID:', req.user.id, 'Type:', typeof req.user.id);
-    console.log('  User Email:', req.user.email);
+    console.log('🔍 Self-register debug (no-auth mode):');
     console.log('  Auction ID:', req.params.id);
 
-    // Convert better-auth string ID to ObjectId for MongoDB query
-    const userId = new mongoose.Types.ObjectId(req.user.id);
     const auctionIdStr = String(req.params.id);
+    const { name, shortName, ownerName, city, primaryColor } = req.body;
 
-    const existing = await Team.findOne({ auctionId: auctionIdStr, ownerId: userId });
+    // No-auth mode - generate a default owner ID
+    const ownerId = 'default-team-owner';
+
+    const existing = await Team.findOne({ auctionId: auctionIdStr, ownerId: ownerId });
     if (existing) {
       console.log('  ✅ Found existing team for user:', existing._id);
-      console.log('  Existing team ownerId:', existing.ownerId, 'Type:', typeof existing.ownerId);
       return res.status(400).json({ error: 'You already have a team', team: existing });
     }
 
@@ -642,7 +638,7 @@ router.post('/:id/teams/self-register', authenticate, checkTeamLimit, upload.sin
 });
 
 // Organizer creates team
-router.post('/:id/teams', authenticate, authorize('organizer','admin'), checkTeamLimit, upload.single('logo'), async (req, res) => {
+router.post('/:id/teams', upload.single('logo'), async (req, res) => {
   try {
     const auction = await Auction.findById(req.params.id);
     if (!auction) return res.status(404).json({ error: 'Auction not found' });
@@ -674,7 +670,7 @@ router.post('/:id/teams', authenticate, authorize('organizer','admin'), checkTea
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.put('/:id/teams/:teamId', authenticate, authorize('organizer','admin'), upload.single('logo'), async (req, res) => {
+router.put('/:id/teams/:teamId', upload.single('logo'), async (req, res) => {
   try {
     const update = { ...req.body };
     if (req.file) {
@@ -687,7 +683,7 @@ router.put('/:id/teams/:teamId', authenticate, authorize('organizer','admin'), u
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/:id/teams/:teamId', authenticate, authorize('organizer','admin'), async (req, res) => {
+router.delete('/:id/teams/:teamId', async (req, res) => {
   try {
     await Team.findByIdAndDelete(req.params.teamId);
     res.json({ success: true });
@@ -695,31 +691,19 @@ router.delete('/:id/teams/:teamId', authenticate, authorize('organizer','admin')
 });
 
 // My team
-router.get('/:id/my-team', authenticate, async (req, res) => {
+router.get('/:id/my-team', async (req, res) => {
   try {
     const auctionIdStr = String(req.params.id);
     
-    // Convert better-auth string ID to ObjectId for MongoDB query
-    const userId = new mongoose.Types.ObjectId(req.user.id);
-    
-    // Debug logging
-    console.log('🔍 My-team debug:');
-    console.log('  User ID:', req.user.id, 'Type:', typeof req.user.id);
-    console.log('  Converted to ObjectId:', userId, 'Type:', typeof userId);
-    console.log('  User Email:', req.user.email);
+    // No-auth mode - return all teams for the auction
+    console.log('🔍 My-team debug (no-auth mode):');
     console.log('  Auction ID:', auctionIdStr);
     
-    // Check for all teams in this auction (for debugging)
-    const allTeams = await Team.find({ auctionId: auctionIdStr });
-    console.log('  All teams in auction:', allTeams.map(t => ({ _id: t._id, name: t.name, ownerId: t.ownerId, ownerIdType: typeof t.ownerId })));
+    // Return all teams for the auction
+    const teams = await Team.find({ auctionId: auctionIdStr }).populate('ownerId','name email');
+    console.log('  All teams in auction:', teams.length);
     
-    // Find team for current user, excluding organizer-created teams (ownerId: null)
-    const team = await Team.findOne({ auctionId: auctionIdStr, ownerId: userId });
-    console.log('  Found team for user:', team ? team._id : 'none');
-    
-    if (!team) return res.status(404).json({ error: 'No team found' });
-    const players = await Player.find({ teamId: team._id, status: 'sold' });
-    res.json({ success: true, team, players });
+    res.json({ success: true, teams });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -736,12 +720,15 @@ router.get('/:id/bids', optionalAuth, async (req, res) => {
 
 // ─── RTM ────────────────────────────────────────────────────────────────────
 
-router.post('/:id/rtm', authenticate, authorize('team_owner'), async (req, res) => {
+router.post('/:id/rtm', async (req, res) => {
   try {
-    const { playerId } = req.body;
+    const { playerId, teamId } = req.body;
     const auctionIdStr = String(req.params.id);
-    const userId = new mongoose.Types.ObjectId(req.user.id);
-    const team = await Team.findOne({ auctionId: auctionIdStr, ownerId: userId });
+    
+    // No-auth mode - require teamId to be provided
+    if (!teamId) return res.status(400).json({ error: 'teamId is required' });
+    
+    const team = await Team.findOne({ auctionId: auctionIdStr, _id: teamId });
     if (!team) return res.status(404).json({ error: 'No team found' });
     if (team.rtmUsed >= team.rtmTotal) return res.status(400).json({ error: 'No RTM remaining' });
     
@@ -792,7 +779,7 @@ router.get('/:id/results', optionalAuth, async (req, res) => {
 });
 
 // ── SCHEDULED START ────────────────────────────────────────────
-router.post('/:id/schedule', authenticate, authorize('organizer', 'admin'), async (req, res) => {
+router.post('/:id/schedule', async (req, res) => {
   try {
     const { scheduledAt } = req.body;
     if (!scheduledAt) return res.status(400).json({ error: 'scheduledAt required' });
@@ -800,8 +787,7 @@ router.post('/:id/schedule', authenticate, authorize('organizer', 'admin'), asyn
     if (schedDate <= new Date()) return res.status(400).json({ error: 'Must be in the future' });
     const auction = await Auction.findById(req.params.id);
     if (!auction) return res.status(404).json({ error: 'Auction not found' });
-    if (auction.organizerId.toString() !== String(req.user.id) && req.user.role !== 'admin')
-      return res.status(403).json({ error: 'Not your auction' });
+    // No-auth mode - allow scheduling by anyone
     await Auction.findByIdAndUpdate(req.params.id, { scheduledAt: schedDate, status: 'scheduled' });
     const io = req.app.get('io');
     if (io) io.emit('auctionScheduled', { auctionId: req.params.id, scheduledAt: schedDate });
@@ -809,7 +795,7 @@ router.post('/:id/schedule', authenticate, authorize('organizer', 'admin'), asyn
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/:id/schedule', authenticate, authorize('organizer', 'admin'), async (req, res) => {
+router.delete('/:id/schedule', async (req, res) => {
   try {
     await Auction.findByIdAndUpdate(req.params.id, { scheduledAt: null, status: 'draft' });
     const io = req.app.get('io');
@@ -819,7 +805,7 @@ router.delete('/:id/schedule', authenticate, authorize('organizer', 'admin'), as
 });
 
 // ── BROADCAST VIEWER MODE ─────────────────────────────────────
-router.post('/:id/broadcast', authenticate, authorize('organizer', 'admin'), async (req, res) => {
+router.post('/:id/broadcast', async (req, res) => {
   try {
     // Broadcast screen check removed - Beast Cricket now operates as a completely free, fully unlocked platform
     // All features including broadcast screen are available to all users
@@ -846,7 +832,7 @@ router.get('/:id/broadcast', async (req, res) => {
 });
 
 // ── CSV EXPORTS ───────────────────────────────────────────────
-router.get('/:id/export/players', authenticate, authorize('organizer', 'admin'), requireFeature('excelExport'), async (req, res) => {
+router.get('/:id/export/players', async (req, res) => {
   try {
     const auction = await Auction.findById(req.params.id);
     if (!auction) return res.status(404).json({ error: 'Auction not found' });
@@ -862,7 +848,7 @@ router.get('/:id/export/players', authenticate, authorize('organizer', 'admin'),
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.get('/:id/export/teams', authenticate, authorize('organizer', 'admin'), requireFeature('excelExport'), async (req, res) => {
+router.get('/:id/export/teams', async (req, res) => {
   try {
     const auction = await Auction.findById(req.params.id);
     if (!auction) return res.status(404).json({ error: 'Auction not found' });
@@ -883,16 +869,14 @@ module.exports = router;
 // ─────────────────────────────────────────────────────────────────────────────
 // BULK IMPORT PLAYERS — CSV/JSON upload
 // ─────────────────────────────────────────────────────────────────────────────
-router.post('/:id/players/bulk-import', authenticate, authorize('organizer','admin'), upload.single('file'), async (req, res) => {
+router.post('/:id/players/bulk-import', upload.single('file'), async (req, res) => {
   try {
     // Bulk import check removed - Beast Cricket now operates as a completely free, fully unlocked platform
     // All features including bulk import are available to all users
     const auctionId = req.params.id;
     const auction = await Auction.findById(auctionId);
     if (!auction) return res.status(404).json({ error: 'Auction not found' });
-    if (auction.organizerId.toString() !== req.user.id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Not authorized' });
-    }
+    // No-auth mode - allow bulk import by anyone
 
     // Parse body JSON or CSV
     let rows = [];
