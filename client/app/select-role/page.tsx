@@ -36,7 +36,7 @@ export default function SelectRolePage() {
       console.log('[AUTH] Creating session for role:', selected);
 
       // Create Better Auth session for the selected role
-      const response = await api.post('/auth/create-role-session', { role: selected });
+      const response = await api.post('/role-session/create', { role: selected });
 
       if (response.data.success) {
         console.log('[AUTH] Session created successfully:', response.data.user);

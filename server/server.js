@@ -182,7 +182,8 @@ const _adminRoleEnforce = async (req, res, next) => {
 // ── API Routes ──────────────────────────────
 // Apply admin role enforcement middleware to ALL API routes
 app.use('/api', _adminRoleEnforce);
-app.use('/api/auth', require('./routes/auth')); // Legacy auth routes for role-based session creation
+app.use('/api/auth', require('./routes/auth')); // Legacy auth routes
+app.use('/api/role-session', require('./routes/role-session')); // Role-based session creation (avoids Better Auth conflict)
 app.use('/api/auctions', require('./routes/auctions'));
 app.use('/api/teams',    require('./routes/teams'));
 app.use('/api/admin',    require('./routes/admin'));

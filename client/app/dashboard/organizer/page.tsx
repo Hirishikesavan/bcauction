@@ -13,7 +13,6 @@ import { useSearchParams } from 'next/navigation';
 import BackButton from '@/components/shared/BackButton';
 import NextStepBanner from '@/components/guide/NextStepBanner';
 import InfoTip from '@/components/guide/InfoTip';
-import { PackageBanner, AuctionPackageNotice } from '@/components/shared/PackageBanner';
 import {
   Gavel, PlusCircle, Pencil, Users, Shield, Package, CreditCard, FileBarChart,
   Palette, Building2, Bot, Radio, MonitorPlay, History, UserCircle, Zap,
@@ -164,21 +163,16 @@ function OrganizerDashboard() {
 
   const fetchPackage = async () => {
     try {
-      // For admin, bypass package check - they have full access to all features
-      if (user?.role === 'admin') {
-        setOrgPackage({ packageType: 'elite', auctionsAllowed: 999, auctionsUsed: 0 });
-        const r = await api.get('/packages');
-        setAllPackages(r.data.packages || []);
-        console.log('Admin user - setting Elite package');
-        return;
-      }
-      const r = await api.get('/packages/my');
-      setOrgPackage(r.data.package);
+      // Package restrictions removed - all users have full access to all features
+      // Set dummy elite package for all users to enable all features
+      setOrgPackage({ packageType: 'elite', auctionsAllowed: 999999, auctionsUsed: 0 });
+      const r = await api.get('/packages');
       setAllPackages(r.data.packages || []);
-      console.log('Package data:', r.data.package);
-      console.log('User role:', user?.role);
+      console.log('Package restrictions removed - all features unlocked');
     } catch (err: any) {
       console.error('Failed to fetch package:', err);
+      // Even if API fails, set dummy package to ensure features work
+      setOrgPackage({ packageType: 'elite', auctionsAllowed: 999999, auctionsUsed: 0 });
     }
   };
 
