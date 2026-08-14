@@ -775,16 +775,7 @@ function OrganizerDashboard() {
                 </button>
               </div>
             )}
-            {!orgPackage && !isAdmin && (
-              <div className="mb-5 flex items-center gap-3 px-4 py-3 rounded-xl border border-yellow-500/30 bg-yellow-500/08">
-                <AlertTriangle size={20} className="text-yellow-400" aria-hidden="true" />
-                <div className="flex-1">
-                  <span className="font-heading text-sm uppercase tracking-wider text-yellow-400">No Plan</span>
-                  <span className="text-muted-foreground text-xs font-display ml-2">Purchase a plan to create auctions</span>
-                </div>
-                <button onClick={() => setTab('package')} className="text-xs font-heading uppercase tracking-wider px-3 py-1.5 rounded-lg bg-primary text-primary-foreground glow-gold transition-all">Buy Plan →</button>
-              </div>
-            )}
+            // Package warning removed - Beast Cricket now operates as a completely free, fully unlocked platform
 
             {tab === 'auctions' && (
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
@@ -796,16 +787,7 @@ function OrganizerDashboard() {
                   <button onClick={() => { setEditAuction(null); setTab('create'); }} className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-heading uppercase tracking-wider text-xs glow-gold hover:scale-[1.02] transition-all">+ Create Auction</button>
                 </div>
 
-                {!orgPackage && (
-                  <div className="mb-6 p-5 rounded-xl border border-yellow-500/40 bg-yellow-500/10 flex items-start gap-4">
-                    <Package size={32} className="text-yellow-400" aria-hidden="true" />
-                    <div className="flex-1">
-                      <div className="font-heading text-lg uppercase tracking-wider text-yellow-400 mb-1">No Active Package</div>
-                      <p className="text-muted-foreground text-sm font-display">Purchase a package to start creating auctions. Plans start at ₹2,999/year.</p>
-                    </div>
-                    <button onClick={() => setTab('package')} className="px-5 py-2 rounded-lg bg-yellow-500 text-black font-heading uppercase tracking-wider text-xs hover:bg-yellow-400 transition-all flex-shrink-0">Buy Plan →</button>
-                  </div>
-                )}
+                // Package warning removed - Beast Cricket now operates as a completely free, fully unlocked platform
 
                 {auctions.length === 0 ? (
                   <div className="text-center py-24 bg-glass-navy rounded-xl border-gold-subtle">
@@ -954,25 +936,8 @@ function OrganizerDashboard() {
                         onUpgrade={() => setTab('package')}
                       />
                     )}
-                    {!editAuction && !orgPackage && !isAdmin && (
-                      <div className="mb-5 p-4 rounded-xl border border-yellow-500/40 bg-yellow-500/10 flex items-center gap-3">
-                        <AlertTriangle size={24} className="text-yellow-400" aria-hidden="true" />
-                        <div className="flex-1">
-                          <div className="font-heading text-sm uppercase tracking-wider text-yellow-400">Package Required</div>
-                          <div className="text-muted-foreground text-xs font-display">You need an active package to create auctions.</div>
-                        </div>
-                        <button onClick={() => setTab('package')} className="px-4 py-2 rounded-lg bg-yellow-500 text-black font-heading text-xs uppercase tracking-wider">Buy Plan</button>
-                      </div>
-                    )}
-                    {!editAuction && !orgPackage && !isAdmin && (
-                      <div className="flex items-start gap-3 bg-primary/10 border border-primary/25 rounded-xl px-4 py-3 mb-6">
-                        <CreditCard size={24} className="mt-0.5 text-primary" aria-hidden="true" />
-                        <div>
-                          <p className="text-foreground font-heading text-sm uppercase tracking-wider">Platform Fee: ₹499</p>
-                          <p className="text-muted-foreground text-xs font-display mt-0.5">One-time per auction · Razorpay secured · UPI / Cards / Net Banking</p>
-                        </div>
-                      </div>
-                    )}
+                    // Package required warning removed - Beast Cricket now operates as a completely free, fully unlocked platform
+                    // Platform fee UI removed - Beast Cricket now operates as a completely free, fully unlocked platform
 
                     <div className="bg-glass-premium rounded-xl p-7 gold-edge border-gold-subtle">
                       <form onSubmit={saveAuction} className="space-y-4">
