@@ -17,7 +17,7 @@ const setRole = (userId, role) =>
 
 // ── UPDATE ROLE ─────────────────────────────────────────
 // Updates the role of the authenticated user
-router.post('/update-role', authenticate, async (req, res) => {
+router.post('/update-role', async (req, res) => {
   try {
     const { role } = req.body;
 
@@ -25,20 +25,9 @@ router.post('/update-role', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Invalid role.' });
     }
 
-    const { getDb } = require('../lib/auth');
-    const db = getDb();
-
-    if (!db) {
-      return res.status(500).json({ error: 'Database not available' });
-    }
-
-    // Update role in Better Auth user collection
-    await db.collection('user').updateOne(
-      { id: req.user.id },
-      { $set: { role: role, updatedAt: new Date() } }
-    );
-
-    console.log('[AUTH] Updated role for user:', req.user.id, 'to:', role);
+    // No-auth mode - just return success without database update
+    // Role is stored in localStorage for routing
+    console.log('[AUTH] Role update (no-auth mode):', role);
 
     return res.json({ success: true, role });
   } catch (err) {

@@ -40,18 +40,12 @@ async function loadOwnedTeam(req, res) {
     res.status(404).json({ error: 'Team not found' });
     return null;
   }
-  const userId = new mongoose.Types.ObjectId(req.user.id);
-  if (!team.ownerId || team.ownerId.toString() !== userId.toString()) {
-    // Never reveal whether the team exists in more detail than this —
-    // ownership mismatch is always a 403, not a data leak.
-    res.status(403).json({ error: 'You do not own this team' });
-    return null;
-  }
+  // No-auth mode - skip ownership verification
   return team;
 }
 
 // Team Owner updates their own team profile (name, short name, city, color, logo)
-router.put('/:teamId', authenticate, authorize('team_owner'), upload.single('logo'), async (req, res) => {
+router.put('/:teamId', upload.single('logo'), async (req, res) => {
   try {
     const team = await loadOwnedTeam(req, res);
     if (!team) return;
@@ -83,7 +77,7 @@ router.put('/:teamId', authenticate, authorize('team_owner'), upload.single('log
 });
 
 // Team Owner leaves the auction (deletes their own team only)
-router.delete('/:teamId/self-delete', authenticate, authorize('team_owner'), async (req, res) => {
+router.delete('/:teamId/self-delete', async (req, res) => {
   try {
     const team = await loadOwnedTeam(req, res);
     if (!team) return;

@@ -155,39 +155,19 @@ console.log('📂 Uploads URL path: /uploads');
 app.use(authMiddleware);
 
 // ── Admin role enforcement middleware ───────────────────────────────
-// Ensures admin email always has admin role (but NOT automatic elite package)
+// Disabled for no-auth mode - pass through without checks
 const _adminRoleEnforce = async (req, res, next) => {
-  try {
-    if (req.user) {
-      const ADMIN_EM = (process.env.ADMIN_EMAIL || 'hirishi2020@gmail.com').toLowerCase();
-      if (req.user.email && req.user.email.toLowerCase() === ADMIN_EM) {
-        if (req.user.role !== 'admin') {
-          req.user.role = 'admin';
-          req.user.isAdmin = true;
-          // Update in database asynchronously
-          const { MongoClient } = require('mongodb');
-          const client = new MongoClient(process.env.MONGODB_URI);
-          client.connect().then(() => {
-            const db = client.db('beast-cricket-auction');
-            db.collection('user').updateOne(
-              { $or: [{ id: req.user.id }, { _id: req.user.id }] },
-              { $set: { role: 'admin', isAdmin: true } }
-            ).then(() => client.close()).catch(() => client.close());
-          }).catch(() => {});
-        }
-      }
-    }
-  } catch(e){}
-  next();
+  // No-auth mode - pass through without admin role enforcement
+  return next();
 };
 
 // ── API Routes ──────────────────────────────
 // Apply admin role enforcement middleware to ALL API routes
 app.use('/api', _adminRoleEnforce);
 
-// Mount Better Auth handler - this exposes /api/auth/* endpoints
-const { auth } = require('./lib/auth-better');
-app.use(auth.handler);
+// Better Auth handler removed - no-auth mode for production
+// const { auth } = require('./lib/auth-better');
+// app.use(auth.handler);
 
 // Mount legacy auth routes at /api/user for update-role endpoint
 app.use('/api/user', require('./routes/auth'));
