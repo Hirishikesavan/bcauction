@@ -128,12 +128,22 @@ export default function TeamOwnerDashboard() {
   const bootstrap = async () => {
     console.log('Team Owner Dashboard bootstrap started');
     try {
+      // Skip API calls if no authenticated user (authentication removed)
+      if (!user) {
+        console.log('No authenticated user - skipping API calls');
+        setAllAuctions([]);
+        setMyTeams([]);
+        setView('home');
+        setInitialLoad(false);
+        return;
+      }
+
       // Get fresh data from backend
       console.log('Fetching auctions from backend...');
       const aRes = await api.get('/auctions');
       setAllAuctions(aRes.data.auctions);
       console.log('Fetched auctions:', aRes.data.auctions.length);
-      
+
       console.log('Fetching teams for each auction...');
       const rows = await Promise.all(
         aRes.data.auctions.map((a:any)=>
@@ -147,10 +157,10 @@ export default function TeamOwnerDashboard() {
       );
       const backendTeams = rows.filter(Boolean);
       console.log('Fetched backend teams:', backendTeams.length);
-      
+
       // Use only backend data - no localStorage to prevent cross-user data leakage
       setMyTeams(backendTeams);
-      
+
       // Set selected team (first available)
       if (backendTeams.length) {
         setSelTeam(backendTeams[0]);
@@ -160,13 +170,13 @@ export default function TeamOwnerDashboard() {
         setView('home');
       }
       console.log('Bootstrap completed successfully');
-    } catch (err) { 
+    } catch (err) {
       console.error('Bootstrap failed:', err);
       setView('home');
     }
-    finally { 
+    finally {
       console.log('Setting initialLoad to false');
-      setInitialLoad(false); 
+      setInitialLoad(false);
     }
   };
 
