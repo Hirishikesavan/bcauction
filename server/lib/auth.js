@@ -9,8 +9,13 @@ const initAuth = async () => {
 };
 
 const getAuth = () => {
-  // Return null stub - authentication disabled
-  return null;
+  // Return stub object with getSession method for compatibility
+  // This prevents "Cannot read property 'getSession' of null" errors
+  return {
+    api: {
+      getSession: async () => null // No session - authentication disabled
+    }
+  };
 };
 
 const getDb = () => {

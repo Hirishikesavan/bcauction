@@ -10,43 +10,17 @@
  * 
  * Since authentication is removed, we set a default user with organizer role
  * to allow auction creation and all other operations.
+ * NO getSession call - this was causing "Invalid Session" errors
  */
 const authenticate = async (req, res, next) => {
-  try {
-    // Try to get Better Auth session if available (for backward compatibility)
-    const { getAuth } = require('../lib/auth');
-    const authInstance = getAuth();
-    const session = await authInstance.api.getSession({ headers: req.headers });
-
-    if (session?.user) {
-      req.user = session.user;
-      req.session = session.session;
-      if (!req.user._id) {
-        req.user._id = req.user.id;
-      }
-    } else {
-      // No session - create default user with organizer role for free platform
-      req.user = {
-        id: 'default-organizer',
-        _id: 'default-organizer',
-        role: 'organizer',
-        email: 'organizer@beastcricket.com'
-      };
-      console.log('⚠️ No session - using default organizer role for free platform');
-    }
-
-    return next();
-  } catch (err) {
-    console.error('❌ authenticate error:', err.message);
-    // Even on error, allow request with default organizer role for free platform
-    req.user = {
-      id: 'default-organizer',
-      _id: 'default-organizer',
-      role: 'organizer',
-      email: 'organizer@beastcricket.com'
-    };
-    return next();
-  }
+  // Always set default organizer user - no authentication checks
+  req.user = {
+    id: 'default-organizer',
+    _id: 'default-organizer',
+    role: 'organizer',
+    email: 'organizer@beastcricket.com'
+  };
+  return next();
 };
 
 /**
@@ -84,31 +58,13 @@ const authorize = (...roles) => (req, res, next) => {
  * OPTIONAL AUTH — attaches user if session exists, never blocks.
  */
 const optionalAuth = async (req, res, next) => {
-  try {
-    const { getAuth } = require('../lib/auth');
-    const authInstance = getAuth();
-    const session = await authInstance.api.getSession({ headers: req.headers });
-    if (session?.user) {
-      req.user       = session.user;
-      req.session    = session.session;
-      req.user._id   = req.user._id || req.user.id;
-    } else {
-      // No session - set default organizer for free platform
-      req.user = {
-        id: 'default-organizer',
-        _id: 'default-organizer',
-        role: 'organizer',
-        email: 'organizer@beastcricket.com'
-      };
-    }
-  } catch { /* anonymous is fine - use default */ 
-    req.user = {
-      id: 'default-organizer',
-      _id: 'default-organizer',
-      role: 'organizer',
-      email: 'organizer@beastcricket.com'
-    };
-  }
+  // Always set default organizer for free platform
+  req.user = {
+    id: 'default-organizer',
+    _id: 'default-organizer',
+    role: 'organizer',
+    email: 'organizer@beastcricket.com'
+  };
   return next();
 };
 
