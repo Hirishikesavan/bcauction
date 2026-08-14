@@ -6,7 +6,10 @@ export const saveToken = (_t: string) => { /* no-op — server uses cookies */ }
 export const getToken  = (): string  => '';
 export const clearToken = () => { /* no-op */ };
 
-const BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000')
+const BASE = (process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname.includes('railway.app') 
+    ? 'https://beast-cricket-backend-production.up.railway.app' 
+    : 'http://localhost:5000'))
   .replace(/\/+$/, '')
   .replace(/\/api$/, '');  // strip trailing /api — we add it in baseURL below
 
