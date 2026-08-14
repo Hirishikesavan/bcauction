@@ -6,9 +6,18 @@ import { useAuth, getRoleRedirect } from '@/hooks/useAuth';
 const ADMIN_EMAIL = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'hirishi2020@gmail.com').toLowerCase();
 
 function getEffectiveRole(user: any): string {
+  // Authentication removed - use localStorage selected_role from role selection page
+  const selectedRole = typeof window !== 'undefined' ? localStorage.getItem('selected_role') : null;
+  
+  // If user explicitly selected a role, use that
+  if (selectedRole && selectedRole !== '1' && selectedRole !== '') {
+    return selectedRole;
+  }
+
+  // Fallback to user role if available
   if (!user) return '';
 
-  // Admin email ALWAYS gets admin role — force it regardless of what session says
+  // Admin email ALWAYS gets admin role
   if (user.email && user.email.toLowerCase() === ADMIN_EMAIL) {
     if (user.id) {
       localStorage.setItem(`role_set_${user.id}`, 'admin');
@@ -18,31 +27,15 @@ function getEffectiveRole(user: any): string {
   }
   if (user.role === 'admin') return 'admin';
 
-  // ── PRIORITY ORDER FOR ROLE RESOLUTION ──────────────────────────────
-  // 1. localStorage role_set_${user.id} — set explicitly at login/role-select
-  //    This is the most authoritative source for the current session intent.
-  // 2. localStorage pending_role — fallback for Google OAuth flow
-  // 3. user.role — DB role from /api/user/me (may lag behind set-role API)
-  //
-  // localStorage is checked FIRST to avoid a race condition where:
-  //   - User selects "organizer" on login page
-  //   - set-role API is called → DB updated to "organizer"
-  //   - Redirect to /organizer-home happens
-  //   - useAuth's /api/user/me fires BEFORE set-role commits → gets OLD DB role
-  //   - Without this priority, AuthGuard would see the stale DB role and
-  //     redirect the organizer to /team-owner-home
-
+  // Check localStorage for stored role
   const storedByUserId = user.id ? localStorage.getItem(`role_set_${user.id}`) : null;
   const pendingRole    = localStorage.getItem('pending_role');
 
-  // localStorage role_set_${id} is the most reliable — set at login time
   if (storedByUserId && storedByUserId !== '1' && storedByUserId !== '') {
     return storedByUserId;
   }
 
-  // DB role from useAuth (via /api/user/me) — may be stale right after login
   if (user.role && user.role !== '1' && user.role !== '') {
-    // Sync localStorage so future checks are consistent
     if (user.id) {
       localStorage.setItem(`role_set_${user.id}`, user.role);
     }
@@ -50,7 +43,6 @@ function getEffectiveRole(user: any): string {
     return user.role;
   }
 
-  // pending_role fallback (Google OAuth or role-select page)
   if (pendingRole && pendingRole !== '1' && pendingRole !== '') {
     return pendingRole;
   }
@@ -71,9 +63,17 @@ export default function AuthGuard({
   useEffect(() => {
     if (loading || didRedirect.current) return;
 
+    // Authentication removed - no login redirect
+    // If no user, check if role was selected via role selection page
     if (!user) {
+      const selectedRole = typeof window !== 'undefined' ? localStorage.getItem('selected_role') : null;
+      if (selectedRole) {
+        // User selected a role but no auth session - allow through
+        return;
+      }
+      // No role selected, redirect to role selection
       didRedirect.current = true;
-      window.location.href = '/login';
+      window.location.href = '/select-role';
       return;
     }
 
@@ -92,7 +92,7 @@ export default function AuthGuard({
       return;
     }
 
-    // Wrong role — redirect to correct homepage
+    // Wrong role — redirect to correct homepage based on selected role
     didRedirect.current = true;
     window.location.href = getRoleRedirect(effectiveRole);
   }, [user, loading, roles]);
@@ -106,6 +106,12 @@ export default function AuthGuard({
         </div>
       </div>
     );
+  }
+
+  // Authentication removed - allow through if role is selected in localStorage
+  const selectedRole = typeof window !== 'undefined' ? localStorage.getItem('selected_role') : null;
+  if (!user && selectedRole) {
+    return <>{children}</>;
   }
 
   if (!user) return null;

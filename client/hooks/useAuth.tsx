@@ -54,10 +54,25 @@ export const useAuth = () => {
   return c;
 };
 
-export const getRoleRedirect = (role?: string | null): string =>
-  ({
+export const getRoleRedirect = (role?: string | null): string => {
+  // Use localStorage to get the selected role from role selection page
+  const selectedRole = typeof window !== 'undefined' ? localStorage.getItem('selected_role') : null;
+  
+  // If a role was explicitly selected, use that for redirect
+  if (selectedRole) {
+    return {
+      organizer:  '/organizer-home',
+      team_owner: '/team-owner-home',
+      viewer:     '/viewer-home',
+      admin:      '/admin-home',
+    }[selectedRole] || '/select-role';
+  }
+  
+  // Fallback to the role parameter if provided
+  return {
     admin:      '/admin-home',
     organizer:  '/organizer-home',
     team_owner: '/team-owner-home',
     viewer:     '/viewer-home',
-  }[role || ''] || '/select-role');
+  }[role || ''] || '/select-role';
+};
