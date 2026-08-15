@@ -9,29 +9,29 @@ const { getAuth } = require('../lib/auth');
 
 /**
  * AUTHENTICATE — validates Better Auth session and attaches user
+ * NO-AUTH MODE: Pass through without blocking
  */
 const authenticate = async (req, res, next) => {
   try {
-    const authInstance = getAuth();
-    const session = await authInstance.api.getSession({ headers: req.headers });
-
-    if (session?.user) {
-      req.user = session.user;
-      req.session = session.session;
-      // Normalize _id field
-      if (!req.user._id) {
-        req.user._id = req.user.id;
-      }
-      console.log('[AUTH] Authenticated user:', req.user.id, 'role:', req.user.role);
-      return next();
-    }
-
-    // No valid session - return 401
-    console.log('[AUTH] No valid session found');
-    return res.status(401).json({ error: 'Invalid Session' });
+    // No-auth mode - attach default user and pass through
+    req.user = {
+      id: 'default-organizer',
+      _id: 'default-organizer',
+      role: 'organizer',
+      email: 'organizer@beastcricket.com'
+    };
+    console.log('[AUTH] No-auth mode - default user attached');
+    return next();
   } catch (err) {
     console.error('[AUTH] Authentication error:', err.message);
-    return res.status(401).json({ error: 'Invalid Session' });
+    // No-auth mode - still pass through on error
+    req.user = {
+      id: 'default-organizer',
+      _id: 'default-organizer',
+      role: 'organizer',
+      email: 'organizer@beastcricket.com'
+    };
+    return next();
   }
 };
 
