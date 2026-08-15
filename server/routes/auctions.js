@@ -199,7 +199,8 @@ router.get('/:id/plan', optionalAuth, async (req, res) => {
 // Create auction
 router.post('/', async (req, res) => {
   try {
-    console.log('POST /auctions - Request body:', req.body);
+    console.log('POST /auctions - NO-AUTH MODE - Request body:', req.body);
+    console.log('POST /auctions - Version: 2024-08-15-1430 - Better Auth disabled');
 
     const { name, description, date, bidTimer, bidIncrement, totalPursePerTeam, maxTeams,
             rtmEnabled, rtmPerTeam, registrationFeeEnabled, registrationFee,
