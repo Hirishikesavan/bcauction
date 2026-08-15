@@ -59,19 +59,20 @@ const authorize = (...roles) => (req, res, next) => {
 
 /**
  * OPTIONAL AUTH — attaches user if session exists, never blocks
+ * NO-AUTH MODE: Attach default user without blocking
  */
 const optionalAuth = async (req, res, next) => {
   try {
-    const authInstance = getAuth();
-    const session = await authInstance.api.getSession({ headers: req.headers });
-    if (session?.user) {
-      req.user = session.user;
-      req.session = session.session;
-      req.user._id = req.user._id || req.user.id;
-      console.log('[AUTH] Optional auth - user:', req.user.id, 'role:', req.user.role);
-    }
+    // No-auth mode - attach default user
+    req.user = {
+      id: 'default-organizer',
+      _id: 'default-organizer',
+      role: 'organizer',
+      email: 'organizer@beastcricket.com'
+    };
+    console.log('[AUTH] Optional auth - default user attached');
   } catch (err) {
-    console.log('[AUTH] Optional auth - no session (this is fine)');
+    console.log('[AUTH] Optional auth error (non-fatal):', err.message);
   }
   return next();
 };
