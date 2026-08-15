@@ -68,50 +68,20 @@ router.get('/plans', (req, res) => {
 // - Role = who the user is (organizer, team_owner, viewer, admin)
 // - Package = what features they have unlocked (starter, pro, elite)
 // - Package does NOT auto-upgrade role - role is controlled separately
-router.get('/my', authenticate, async (req, res) => {
+router.get('/my', async (req, res) => {
   try {
     const now = new Date();
 
-    // Admin users get a synthetic elite package — all features unlocked
-    if (req.user.role === 'admin') {
-      const syntheticElite = {
-        organizerId: req.user.id,
-        packageType: 'elite',
-        auctionsAllowed: 999999,
-        auctionsUsed: 0,
-        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-        grantedByAdmin: true,
-        isActive: true,
-        auctionsRemaining: 999999,
-      };
-      return res.json({ success: true, package: syntheticElite, packages: Object.values(PACKAGES) });
-    }
-
-    // Primary lookup: by Better Auth string ID
-    let pkg = await OrganizerPackage.findOne({ organizerId: req.user.id, expiresAt: { $gt: now } });
-
-    // Fallback: admin may have stored the package using a different ID representation
-    // (e.g. baUser._id string vs baUser.id). Look up by email → re-resolve the user's
-    // canonical id and check if a package exists under that id.
-    if (!pkg && req.user.email) {
-      try {
-        const db = getDb();
-        const dbUser = await db.collection('user').findOne({ email: req.user.email.toLowerCase() });
-        if (dbUser) {
-          const altId = dbUser.id || String(dbUser._id);
-          if (altId && altId !== req.user.id) {
-            pkg = await OrganizerPackage.findOne({ organizerId: altId, expiresAt: { $gt: now } });
-            // If found under a different ID, normalise the record so future lookups hit primary
-            if (pkg) {
-              await OrganizerPackage.updateOne({ _id: pkg._id }, { $set: { organizerId: req.user.id } });
-              pkg.organizerId = req.user.id;
-            }
-          }
-        }
-      } catch (e) { /* non-fatal fallback */ }
-    }
-
-    res.json({ success: true, package: pkg || null, packages: Object.values(PACKAGES) });
+    // No-auth mode - return elite package for all users
+    const syntheticElite = {
+      organizerId: 'default-organizer',
+      packageType: 'elite',
+      auctionsAllowed: 999999,
+      auctionsUsed: 0,
+      expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
+      features: PACKAGES.elite.features,
+    };
+    return res.json({ success: true, package: syntheticElite, features: PACKAGES.elite.features });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -311,96 +281,44 @@ router.put('/profile', authenticate, authorize('organizer','admin'), upload.sing
 
 // ── UPI PAYMENT CONFIRM (when Razorpay not configured) ──────
 // Organizer fills UPI screenshot/UTR and admin approves (or auto-approve in dev)
-router.post('/upi-payment', authenticate, async (req, res) => {
+router.post('/upi-payment', async (req, res) => {
   try {
     const { packageKey, utrNumber, screenshotNote } = req.body;
     const pkg = PACKAGES[packageKey];
     if (!pkg) return res.status(400).json({ error: 'Invalid package' });
 
-    // In production without Razorpay: create pending activation record
-    // For simplicity, auto-activate (organizer is trusted)
+    // No-auth mode - return elite package without payment
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + pkg.validityDays);
 
-    const existing = await OrganizerPackage.findOne({ organizerId: req.user.id });
-    let orgPkg;
-    if (existing) {
-      orgPkg = await OrganizerPackage.findOneAndUpdate(
-        { organizerId: req.user.id },
-        { packageType: packageKey, auctionsAllowed: pkg.auctionsAllowed, expiresAt, paymentId: `UPI_${utrNumber || 'MANUAL'}`, orderId: `UPI_${Date.now()}`, amountPaid: pkg.price },
-        { new: true }
-      );
-    } else {
-      orgPkg = await OrganizerPackage.create({
-        organizerId: req.user.id, packageType: packageKey,
-        auctionsAllowed: pkg.auctionsAllowed, expiresAt,
-        paymentId: `UPI_${utrNumber || 'MANUAL'}`, orderId: `UPI_${Date.now()}`, amountPaid: pkg.price,
-      });
-    }
+    const orgPkg = {
+      organizerId: 'default-organizer',
+      packageType: packageKey,
+      auctionsAllowed: pkg.auctionsAllowed,
+      expiresAt,
+      paymentId: `UPI_${utrNumber || 'MANUAL'}`,
+      orderId: `UPI_${Date.now()}`,
+      amountPaid: pkg.price,
+    };
 
-    // Promote user to organizer if they're a viewer
-    if (req.user.role === 'viewer' || !req.user.role) {
-      try {
-        const auth = getAuth();
-        // Update Better Auth user record
-        await auth.api.updateUser({ userId: req.user.id, updates: { role: 'organizer' } });
-        // Update raw DB collection (belt-and-suspenders)
-        const db = getDb();
-        await db.collection('user').updateOne({ id: req.user.id }, { $set: { role: 'organizer' } });
-        req.user.role = 'organizer';
-        // Invalidate sessions so next request gets fresh role
-        await db.collection('session').deleteMany({ userId: req.user.id });
-      } catch(e) { console.warn('Role promotion failed (non-fatal):', e.message); }
-    }
-
-    // ── Save payment record so admin payment history shows UPI payments ──
-    try {
-      await Payment.create({
-        organizerId: req.user.id,
-        type: 'package_purchase',
-        packageType: packageKey,
-        razorpayOrderId: `UPI_${Date.now()}`,
-        razorpayPaymentId: utrNumber ? `UTR_${utrNumber}` : `UPI_MANUAL_${Date.now()}`,
-        amount: pkg.price,
-        currency: 'INR',
-        status: 'success',
-        notes: `UPI Payment — UTR: ${utrNumber || 'MANUAL'}`,
-        isDevMode: false,
-      });
-    } catch (payErr) { console.error('Payment record save failed (non-fatal):', payErr.message); }
-
-    // ── Admin notification ──────────────────────────────────────
-    try {
-      const { sendAdminPurchaseNotification } = require('../utils/email');
-      await sendAdminPurchaseNotification({
-        adminEmail: process.env.ADMIN_EMAIL,
-        userName: req.user.name || req.user.email,
-        userEmail: req.user.email,
-        packageName: pkg.name,
-        packagePrice: (pkg.price / 100).toLocaleString('en-IN'),
-        paymentMethod: 'UPI / Google Pay',
-        transactionId: utrNumber || 'MANUAL',
-      });
-    } catch (notifErr) { console.error('Admin notification failed (non-fatal):', notifErr.message); }
-
-    return res.json({ success: true, package: orgPkg, message: 'Package activated via UPI payment.' });
+    return res.json({ success: true, package: orgPkg });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ── CUSTOM BRANDING (Elite only) ─────────────────────────────
-router.get('/branding', authenticate, async (req, res) => {
+router.get('/branding', async (req, res) => {
   try {
-    const branding = await CustomBranding.findOne({ organizerId: req.user.id });
+    const branding = await CustomBranding.findOne({ organizerId: 'default-organizer' });
     res.json({ success: true, branding: branding || {} });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.put('/branding', authenticate, authorize('organizer','admin'), requireFeature('customBranding'), async (req, res) => {
+router.put('/branding', async (req, res) => {
   try {
-    console.log('📝 BRANDING SAVE REQUEST from user:', req.user._id, 'role:', req.user.role);
+    console.log('📝 BRANDING SAVE REQUEST (no-auth mode)');
     console.log('📝 Request body:', req.body);
 
-    const update = { organizerId: req.user.id };
+    const update = { organizerId: 'default-organizer' };
     ['leagueName','primaryColor','secondaryColor','tagline','leagueLogoUrl','bannerUrl'].forEach(f => {
       if (req.body[f] !== undefined && req.body[f] !== '') {
         update[f] = req.body[f];
@@ -408,8 +326,8 @@ router.put('/branding', authenticate, authorize('organizer','admin'), requireFea
       }
     });
 
-    const branding = await CustomBranding.findOneAndUpdate({ organizerId: req.user.id }, update, { upsert: true, new: true });
-    console.log('✅ CUSTOM BRANDING SAVED for organizer:', req.user._id, 'by user:', req.user.role);
+    const branding = await CustomBranding.findOneAndUpdate({ organizerId: 'default-organizer' }, update, { upsert: true, new: true });
+    console.log('✅ CUSTOM BRANDING SAVED (no-auth mode)');
     res.json({ success: true, branding });
   } catch (err) {
     console.error('❌ BRANDING SAVE ERROR:', err.message);

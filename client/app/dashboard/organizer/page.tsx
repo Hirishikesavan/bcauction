@@ -141,8 +141,12 @@ function OrganizerDashboard() {
   }, [sel?._id]);
 
   useEffect(() => {
-    if (user) { fetchAuctions(); fetchPackage(); fetchPayProfile(); fetchBranding(); }
-  }, [user?.role]); // Trigger on role change to ensure admin gets Elite package
+    // No-auth mode - fetch data regardless of user state
+    fetchAuctions();
+    fetchPackage();
+    fetchPayProfile();
+    fetchBranding();
+  }, []); // No dependency on user for no-auth mode
 
   useEffect(() => {
     if (sel) { fetchPlayers(); fetchTeams(); fetchSponsors(); subscribeSocket(); }
