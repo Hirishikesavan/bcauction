@@ -94,21 +94,14 @@ router.post('/fix-role', authenticate, async (req, res) => {
     }
 
     if (req.user.role === 'viewer') {
-      const auth = getAuth();
-      await auth.api.updateUser({
-        userId: req.user.id,
-        updates: { role: 'organizer' }
-      });
-
-      // Delete all sessions for this user to force re-login with new role
-      try {
-        const mongoose = require('mongoose');
-        await mongoose.connection.collection('session').deleteMany({ userId: req.user.id });
-      } catch (e) {
-        console.error('Failed to clear sessions:', e.message);
+      // No-auth mode - skip Better Auth API calls
+      const db = getDb();
+      if (db) {
+        await db.collection('user').updateOne({ id: req.user.id }, { $set: { role: 'organizer' } });
       }
+      req.user.role = 'organizer';
 
-      return res.json({ success: true, message: 'Role upgraded to organizer. Please log out and log back in.', newRole: 'organizer' });
+      return res.json({ success: true, message: 'Role upgraded to organizer (no-auth mode)', newRole: 'organizer' });
     }
 
     return res.json({ success: true, message: 'Already have organizer or higher role', currentRole: req.user.role });
@@ -182,12 +175,10 @@ router.post('/activate', authenticate, async (req, res) => {
 
     if (req.user.role === 'viewer' || !req.user.role) {
       try {
-        const auth = getAuth();
-        await auth.api.updateUser({ userId: req.user.id, updates: { role: 'organizer' } });
+        // No-auth mode - skip Better Auth API calls
         const db = getDb();
         await db.collection('user').updateOne({ id: req.user.id }, { $set: { role: 'organizer' } });
         req.user.role = 'organizer';
-        await db.collection('session').deleteMany({ userId: req.user.id });
       } catch(e) { console.warn('Role promotion failed (non-fatal):', e.message); }
     }
 

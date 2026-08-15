@@ -615,12 +615,8 @@ router.post('/grant-plan', authenticate, authorize('admin'), async (req, res) =>
           { id: targetUserId },
           { $set: { role: 'organizer' } }
         );
-        // Also update via Better Auth API for session consistency
-        const auth = getAuth();
-        await auth.api.updateUser({ userId: targetUserId, updates: { role: 'organizer' } }).catch(() => {});
-        // Invalidate ALL sessions for this user — forces fresh DB read on next request
-        await baDb.collection('session').deleteMany({ userId: targetUserId });
-        console.log(`✅ [grant-plan] Set ${email} role → organizer and invalidated sessions`);
+        // No-auth mode - skip Better Auth API calls
+        console.log(`✅ [grant-plan] Set ${email} role → organizer (no-auth mode)`);
       }
     } catch(e) { console.warn('Role promotion after admin grant (non-fatal):', e.message); }
 
