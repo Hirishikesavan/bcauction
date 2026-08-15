@@ -6,7 +6,7 @@ const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 const mongoose = require('mongoose');
-const cookieParser = require('cookie-parser');
+// cookie-parser removed - no-auth mode
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const ioStore = require('./socket/io');
@@ -105,7 +105,7 @@ app.post('/api/payment/webhook', require('./routes/payment'));
 // ── Body Parsing ────────────────────────────
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cookieParser());
+// cookie-parser removed - no-auth mode
 
 // ── NoSQL Injection Prevention ───────────────────────────────
 try {

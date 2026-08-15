@@ -31,7 +31,7 @@ export const getSocket = (): Socket => {
   console.log(' Connecting to socket at:', SOCKET_URL);
 
   socket = io(SOCKET_URL, {
-    withCredentials:      true,   // sends Better Auth session cookie
+    withCredentials:      false,   // NO-AUTH MODE - disable session cookies
     transports:           ['websocket', 'polling'],
     reconnection:         true,
     reconnectionAttempts: 20,

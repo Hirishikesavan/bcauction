@@ -26,7 +26,7 @@ export const imgUrl = (src?: string | null): string => {
 
 const api = axios.create({
   baseURL:         `${BASE}/api`,
-  withCredentials: true,   // send Better Auth session cookie cross-origin
+  withCredentials: false,   // NO-AUTH MODE - disable session cookies
   timeout:         30000,
 });
 
