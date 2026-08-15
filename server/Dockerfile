@@ -1,3 +1,4 @@
+# FORCE REDEPLOY 2024-08-15-1515
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
