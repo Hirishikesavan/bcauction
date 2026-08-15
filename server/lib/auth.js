@@ -1,26 +1,17 @@
 'use strict';
-// Canonical Better Auth implementation - single source of truth for authentication
+// NO-AUTH MODE - Better Auth completely disabled
 
 const mongoose = require('mongoose');
-let _authInstance = null;
 let _db = null;
 
 const initAuth = async () => {
-  // Import the real Better Auth instance from auth.ts
-  if (!_authInstance) {
-    const authModule = require('./auth.ts');
-    _authInstance = authModule.auth;
-  }
-  return _authInstance;
+  // No-auth mode - do not initialize Better Auth
+  return null;
 };
 
 const getAuth = () => {
-  // Import and return the real Better Auth instance
-  if (!_authInstance) {
-    const authModule = require('./auth.ts');
-    _authInstance = authModule.auth;
-  }
-  return _authInstance;
+  // No-auth mode - return null to prevent Better Auth calls
+  return null;
 };
 
 const getDb = () => {

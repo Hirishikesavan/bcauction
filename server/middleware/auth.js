@@ -1,38 +1,23 @@
 'use strict';
 // ═══════════════════════════════════════════════════════════════
-// AUTH MIDDLEWARE — CANONICAL BETTER AUTH IMPLEMENTATION
+// AUTH MIDDLEWARE — NO-AUTH MODE
 // ═══════════════════════════════════════════════════════════════
-// Uses the real Better Auth instance as single source of truth
-// No fake users, no hardcoded IDs, proper session validation
-
-const { getAuth } = require('../lib/auth');
+// Completely bypasses Better Auth for production no-auth mode
 
 /**
- * AUTHENTICATE — validates Better Auth session and attaches user
+ * AUTHENTICATE — attaches default user without any Better Auth calls
  * NO-AUTH MODE: Pass through without blocking
  */
 const authenticate = async (req, res, next) => {
-  try {
-    // No-auth mode - attach default user and pass through
-    req.user = {
-      id: 'default-organizer',
-      _id: 'default-organizer',
-      role: 'organizer',
-      email: 'organizer@beastcricket.com'
-    };
-    console.log('[AUTH] No-auth mode - default user attached');
-    return next();
-  } catch (err) {
-    console.error('[AUTH] Authentication error:', err.message);
-    // No-auth mode - still pass through on error
-    req.user = {
-      id: 'default-organizer',
-      _id: 'default-organizer',
-      role: 'organizer',
-      email: 'organizer@beastcricket.com'
-    };
-    return next();
-  }
+  // No-auth mode - attach default user and pass through
+  req.user = {
+    id: 'default-organizer',
+    _id: 'default-organizer',
+    role: 'organizer',
+    email: 'organizer@beastcricket.com'
+  };
+  console.log('[AUTH] No-auth mode - default user attached');
+  return next();
 };
 
 /**

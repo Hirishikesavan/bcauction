@@ -513,6 +513,7 @@ app.use((req, res) => {
 // ── Error Handler ───────────────────────────
 app.use((err, req, res, next) => {
   console.error('❌ Server error:', err.message);
+  console.error('❌ Error details:', JSON.stringify(err, null, 2));
   console.error(err.stack);
   res.status(err.status || 500).json({
     error: isProd ? 'Server error' : err.message,
