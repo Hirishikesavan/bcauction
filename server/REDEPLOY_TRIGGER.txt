@@ -1,0 +1,2 @@
+FORCE REDEPLOY TRIGGER - 2024-08-15-1520
+This file forces Railway to rebuild the service
