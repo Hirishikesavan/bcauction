@@ -595,7 +595,7 @@ router.post('/:id/teams/self-register', upload.single('logo'), async (req, res) 
       }
     }
 
-    const { name, shortName, ownerName, city, primaryColor } = req.body;
+    // Variables already declared above on line 558
     const team = new Team({
       auctionId: auctionIdStr,
       ownerId: userId,
