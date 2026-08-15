@@ -1,5 +1,6 @@
-# FORCE COMPLETE REDEPLOY 2024-08-15-1625 - CHANGE NODE VERSION
-FROM node:18-alpine
+# FORCE COMPLETE REDEPLOY 2024-08-15-1630 - CHANGE BASE IMAGE
+FROM alpine:3.18
+RUN apk add --no-cache nodejs npm
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --omit=dev --force
