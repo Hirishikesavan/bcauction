@@ -22,6 +22,7 @@ if (!fs.existsSync(uploadsDir)) {
 const app = express();
 const server = http.createServer(app);
 const isProd = process.env.NODE_ENV === 'production';
+// FORCE REDEPLOY: 2024-08-15-1445 - Better Auth completely disabled
 
 // ── CORS Configuration ──────────────────────
 const allowedOrigins = [...new Set([
