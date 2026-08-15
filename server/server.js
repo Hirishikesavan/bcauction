@@ -1,3 +1,4 @@
+// FORCE RAILWAY REBUILD 2024-08-15-1635 - COMPLETE RESTRUCTURE
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
