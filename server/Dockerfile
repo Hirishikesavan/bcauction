@@ -1,5 +1,5 @@
-# FORCE COMPLETE REDEPLOY 2024-08-15-1615
-FROM node:20-alpine
+# FORCE COMPLETE REDEPLOY 2024-08-15-1625 - CHANGE NODE VERSION
+FROM node:18-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --omit=dev --force

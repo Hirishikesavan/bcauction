@@ -1,8 +1,7 @@
 // ════════════════════════════════════════════════════════════════════════════
-// AUCTIONS ROUTES - COMPLETE FIX WITH PLAYER IMAGE VISIBILITY
+// AUCTIONS ROUTES - NO-AUTH MODE - COMPLETE BYPASS
 // ════════════════════════════════════════════════════════════════════════════
-// FILE PATH: bca-fixed/bca/server/routes/auctions.js
-// REPLACE THE ENTIRE FILE WITH THIS CODE
+// VERSION: 2024-08-15-1620 - Complete no-auth mode
 // ════════════════════════════════════════════════════════════════════════════
 
 const express = require('express');
