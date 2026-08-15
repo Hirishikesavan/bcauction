@@ -166,6 +166,16 @@ const _adminRoleEnforce = async (req, res, next) => {
 // Apply admin role enforcement middleware to ALL API routes
 app.use('/api', _adminRoleEnforce);
 
+// TEST ENDPOINT - bypass all routes to verify server is updated
+app.get('/api/test-no-auth', (req, res) => {
+  res.json({
+    ok: true,
+    message: 'NO-AUTH MODE TEST',
+    version: '2024-08-15-1445',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Better Auth handler removed - no-auth mode for production
 // const { auth } = require('./lib/auth-better');
 // app.use(auth.handler);
