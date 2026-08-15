@@ -22,7 +22,7 @@ if (!fs.existsSync(uploadsDir)) {
 const app = express();
 const server = http.createServer(app);
 const isProd = process.env.NODE_ENV === 'production';
-// FORCE REDEPLOY: 2024-08-15-1445 - Better Auth completely disabled
+// FORCE REDEPLOY: 2024-08-15-1605 - Complete no-auth mode - cookies disabled
 
 // ── CORS Configuration ──────────────────────
 const allowedOrigins = [...new Set([
@@ -171,8 +171,9 @@ app.get('/api/test-no-auth', (req, res) => {
   res.json({
     ok: true,
     message: 'NO-AUTH MODE TEST',
-    version: '2024-08-15-1445',
-    timestamp: new Date().toISOString()
+    version: '2024-08-15-1615',
+    timestamp: new Date().toISOString(),
+    authDisabled: true
   });
 });
 

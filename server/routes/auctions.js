@@ -200,7 +200,7 @@ router.get('/:id/plan', optionalAuth, async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     console.log('POST /auctions - NO-AUTH MODE - Request body:', req.body);
-    console.log('POST /auctions - Version: 2024-08-15-1430 - Better Auth disabled');
+    console.log('POST /auctions - Version: 2024-08-15-1610 - Complete no-auth mode');
 
     const { name, description, date, bidTimer, bidIncrement, totalPursePerTeam, maxTeams,
             rtmEnabled, rtmPerTeam, registrationFeeEnabled, registrationFee,
@@ -210,6 +210,9 @@ router.post('/', async (req, res) => {
     // All users can create auctions without authentication
     // Generate a default organizer ID for no-auth mode
     const organizerId = 'default-organizer';
+
+    // DEBUG: Log that we're in no-auth mode
+    console.log('NO-AUTH MODE ACTIVE - Creating auction for default organizer');
 
     const auction = new Auction({
       organizerId, name, description, date,
