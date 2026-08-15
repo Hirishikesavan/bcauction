@@ -134,7 +134,7 @@ const limiter = rateLimit({
 });
 
 app.use('/api', limiter);
-app.use('/api/auth', authLimiter);
+// app.use('/api/auth', authLimiter); // Disabled - no-auth mode
 app.use('/api/payment', paymentLimiter);
 
 // ── Static Files ────────────────────────────
