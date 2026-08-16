@@ -539,16 +539,8 @@ router.delete('/:id/players/:playerId', async (req, res) => {
 
 router.get('/:id/teams', optionalAuth, async (req, res) => {
   try {
-    // Team owners (and ONLY team owners) get their own team — never the full list.
-    // Everyone else (organizer/admin/viewer/anonymous) gets the full public list,
-    // which is intentional: lobby/poster/viewer/organizer screens need to show all teams.
-    const role = req.user?.role;
-    if (req.user && role === 'team_owner') {
-      // No-auth mode - use string ID directly (not ObjectId conversion)
-      const userId = String(req.user.id);
-      const team = await Team.findOne({ auctionId: req.params.id, ownerId: userId }).populate('ownerId','name email');
-      return res.json({ success: true, teams: team ? [team] : [] });
-    }
+    // In no-auth mode, return all teams for everyone
+    // This allows multiple team owners to see all participating teams
     const teams = await Team.find({ auctionId: req.params.id }).populate('ownerId','name email');
     res.json({ success: true, teams });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -611,7 +603,7 @@ router.post('/:id/teams/self-register', upload.single('logo'), async (req, res) 
     // Variables already declared above on line 558
     const team = new Team({
       auctionId: auctionIdStr,
-      ownerId: userId,
+      ownerId: ownerId,
       name,
       shortName: shortName.toUpperCase().slice(0,4),
       ownerName: ownerName || req.user.name,
@@ -623,7 +615,7 @@ router.post('/:id/teams/self-register', upload.single('logo'), async (req, res) 
       logo: getImageUrl(req.file),
     });
 
-    console.log('  💾 Creating new team with ownerId:', userId);
+    console.log('  💾 Creating new team with ownerId:', ownerId);
     console.log('  Team data before save:', {
       name: team.name,
       auctionId: team.auctionId,
@@ -631,7 +623,7 @@ router.post('/:id/teams/self-register', upload.single('logo'), async (req, res) 
       ownerIdType: typeof team.ownerId
     });
     await team.save();
-    await promoteToTeamOwner(userId); // FIX: self-registering a team must grant team_owner role too
+    // No-auth mode - skip promoteToTeamOwner since we don't have user roles in database
     console.log('  ✅ Team created successfully:', team._id);
     console.log('  Team data after save:', {
       _id: team._id,
