@@ -96,10 +96,11 @@ router.post('/join-by-code', async (req, res) => {
     console.log('🔍 req.user:', req.user);
     console.log('🔍 req.user exists:', !!req.user);
 
-    const { code } = req.body;
+    const { code, participantId } = req.body;
     if (!code) return res.status(400).json({ error: 'Join code required' });
 
     console.log('🔍 Join code received:', code);
+    console.log('🔍 Participant ID:', participantId);
 
     const auction = await Auction.findOne({ joinCode: code.toUpperCase().trim() });
     if (!auction) return res.status(404).json({ error: 'Invalid join code' });
@@ -110,30 +111,16 @@ router.post('/join-by-code', async (req, res) => {
     console.log('🔍 Auction found:', auction._id);
     console.log('🔍 Auction name:', auction.name);
 
-    // Debug logging to identify user ID issues
-    console.log('🔍 Join-by-code debug (no-auth mode):');
-    console.log('  req.user:', req.user);
-    console.log('  req.user.id:', req.user?.id, 'Type:', typeof req.user?.id);
-    console.log('  req.user.email:', req.user?.email);
-    console.log('  req.user.role:', req.user?.role);
-    console.log('  Auction ID:', auction._id);
-    console.log('  Auction Name:', auction.name);
-
-    if (!req.user || !req.user.id) {
-      console.error('🔍 CRITICAL: req.user or req.user.id is undefined!');
-      console.error('🔍 req.user:', req.user);
-      return res.status(500).json({ error: 'User authentication error - req.user.id is undefined' });
-    }
-
-    // No-auth mode - use string ID directly (not ObjectId conversion)
-    const userId = String(req.user.id);
+    // No-auth mode - use participantId from request body for team identification
+    // This allows multiple team owners to join the same auction with different identities
+    const userId = participantId || 'default-team-owner';
     const auctionIdStr = String(auction._id);
 
-    console.log('  Using userId as string:', userId, 'Type:', typeof userId);
+    console.log('🔍 Using userId for team lookup:', userId, 'Type:', typeof userId);
 
     // Check ALL teams in this auction for debugging
     const allTeams = await Team.find({ auctionId: auctionIdStr });
-    console.log('  All teams in auction:', allTeams.map(t => ({
+    console.log('🔍 All teams in auction:', allTeams.map(t => ({
       _id: t._id,
       name: t.name,
       ownerId: t.ownerId,
@@ -146,14 +133,13 @@ router.post('/join-by-code', async (req, res) => {
     });
 
     if (existing) {
-      console.log('  ✅ Found existing team for user:', existing._id);
-      console.log('  Existing team name:', existing.name);
-      console.log('  Existing team ownerId:', existing.ownerId, 'Type:', typeof existing.ownerId);
-      console.log('  Match check:', existing.ownerId.toString() === userId.toString());
+      console.log('🔍 ✅ Found existing team for participant:', existing._id);
+      console.log('🔍 Existing team name:', existing.name);
+      console.log('🔍 Existing team ownerId:', existing.ownerId, 'Type:', typeof existing.ownerId);
       return res.json({ success: true, auction, team: existing, alreadyJoined: true });
     }
 
-    console.log('  ❌ No existing team found, user can join');
+    console.log('🔍 ❌ No existing team found, participant can join');
     res.json({
       success: true, auction, alreadyJoined: false,
       teamOwnerFeeRequired: auction.teamOwnerFeeEnabled && auction.teamOwnerFee > 0,
@@ -580,14 +566,16 @@ router.post('/:id/teams/self-register', upload.single('logo'), async (req, res) 
     console.log('  Auction ID:', req.params.id);
 
     const auctionIdStr = String(req.params.id);
-    const { name, shortName, ownerName, city, primaryColor } = req.body;
+    const { name, shortName, ownerName, city, primaryColor, participantId } = req.body;
 
-    // No-auth mode - generate a default owner ID
-    const ownerId = 'default-team-owner';
+    // No-auth mode - use participantId from request body for team identification
+    const ownerId = participantId || 'default-team-owner';
+
+    console.log('🔍 Self-register - Using ownerId:', ownerId);
 
     const existing = await Team.findOne({ auctionId: auctionIdStr, ownerId: ownerId });
     if (existing) {
-      console.log('  ✅ Found existing team for user:', existing._id);
+      console.log('  ✅ Found existing team for participant:', existing._id);
       return res.status(400).json({ error: 'You already have a team', team: existing });
     }
 

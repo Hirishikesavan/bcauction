@@ -58,6 +58,19 @@ export default function TeamOwnerDashboard() {
   // Skip authentication - allow direct access
   const currentUser = user || { name: 'Team Owner', id: 'demo-user' };
 
+  // Generate stable participant ID for no-auth mode (allows multiple team owners)
+  const [participantId, setParticipantId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      let id = localStorage.getItem('beast-cricket-participant-id');
+      if (!id) {
+        id = `team-owner-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('beast-cricket-participant-id', id);
+      }
+      return id;
+    }
+    return 'default-team-owner';
+  });
+
   // join-code flow
   const [code, setCode] = useState('');
   const [previewAuction, setPreviewAuction] = useState<any>(null);
@@ -185,7 +198,8 @@ export default function TeamOwnerDashboard() {
     setLoading(true);
     try {
       console.log('🔍 TEAM OWNER JOIN - Calling /auctions/join-by-code with code:', code);
-      const r = await api.post('/auctions/join-by-code', { code });
+      console.log('🔍 TEAM OWNER JOIN - participantId:', participantId);
+      const r = await api.post('/auctions/join-by-code', { code, participantId });
       console.log('🔍 TEAM OWNER JOIN - API Response:', r.data);
       console.log('🔍 TEAM OWNER JOIN - r.data.auction:', r.data.auction);
       console.log('🔍 TEAM OWNER JOIN - r.data.team:', r.data.team);
@@ -308,11 +322,11 @@ export default function TeamOwnerDashboard() {
     try {
       console.log('🔍 TEAM OWNER CREATE TEAM - previewAuction:', previewAuction);
       console.log('🔍 TEAM OWNER CREATE TEAM - previewAuction._id:', previewAuction?._id);
-      console.log('🔍 TEAM OWNER CREATE TEAM - currentUser:', currentUser);
-      console.log('🔍 TEAM OWNER CREATE TEAM - currentUser.id:', currentUser?.id);
+      console.log('🔍 TEAM OWNER CREATE TEAM - participantId:', participantId);
 
       const fd = new FormData();
       Object.entries(tf).forEach(([k,v])=>fd.append(k,v));
+      fd.append('participantId', participantId); // Send participant ID for team identification
       if (tLogo) fd.append('logo',tLogo);
       if (teamOwnerFeeData.required) {
         if (teamOwnerFeeData.razorpayPaymentId) {

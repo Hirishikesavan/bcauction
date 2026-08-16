@@ -11,7 +11,7 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const ioStore = require('./socket/io');
-const { authMiddleware } = require('./lib/middleware');
+const { optionalAuth } = require('./middleware/auth');
 const { getCloudinaryStatus } = require('./utils/cloudinary');
 
 // ── Uploads dir ─────────────────────────
@@ -154,7 +154,7 @@ console.log('📂 Serving static files from:', uploadsDir);
 console.log('📂 Uploads URL path: /uploads');
 
 // ── Auth Middleware ─────────────────────────
-app.use(authMiddleware);
+app.use(optionalAuth);
 
 // ── Admin role enforcement middleware ───────────────────────────────
 // Disabled for no-auth mode - pass through without checks
