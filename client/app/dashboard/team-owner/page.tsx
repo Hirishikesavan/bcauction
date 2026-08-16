@@ -184,9 +184,16 @@ export default function TeamOwnerDashboard() {
     if (code.trim().length < 4) return toast.error('Enter at least 4 characters');
     setLoading(true);
     try {
+      console.log('🔍 TEAM OWNER JOIN - Calling /auctions/join-by-code with code:', code);
       const r = await api.post('/auctions/join-by-code', { code });
+      console.log('🔍 TEAM OWNER JOIN - API Response:', r.data);
+      console.log('🔍 TEAM OWNER JOIN - r.data.auction:', r.data.auction);
+      console.log('🔍 TEAM OWNER JOIN - r.data.team:', r.data.team);
+      console.log('🔍 TEAM OWNER JOIN - r.data.alreadyJoined:', r.data.alreadyJoined);
+
       if (r.data.alreadyJoined) { toast('Already joined this auction!',); await bootstrap(); }
       else {
+        console.log('🔍 TEAM OWNER JOIN - Setting preview auction:', r.data.auction);
         setPreviewAuction(r.data.auction);
         setTf(p=>({...p,ownerName:currentUser.name||''}));
         // Fetch fee/payment setup for this auction's organizer (Razorpay, QR, UPI)
@@ -299,6 +306,11 @@ export default function TeamOwnerDashboard() {
     if (!tf.name||!tf.shortName) return toast.error('Team name and short code required');
     setLoading(true);
     try {
+      console.log('🔍 TEAM OWNER CREATE TEAM - previewAuction:', previewAuction);
+      console.log('🔍 TEAM OWNER CREATE TEAM - previewAuction._id:', previewAuction?._id);
+      console.log('🔍 TEAM OWNER CREATE TEAM - currentUser:', currentUser);
+      console.log('🔍 TEAM OWNER CREATE TEAM - currentUser.id:', currentUser?.id);
+
       const fd = new FormData();
       Object.entries(tf).forEach(([k,v])=>fd.append(k,v));
       if (tLogo) fd.append('logo',tLogo);
@@ -311,16 +323,23 @@ export default function TeamOwnerDashboard() {
           fd.append('utrNumber', teamOwnerFeeData.utrNumber);
         }
       }
+
+      console.log('🔍 TEAM OWNER CREATE TEAM - Calling self-register with auction ID:', previewAuction?._id);
       const r = await api.post(`/auctions/${previewAuction._id}/teams/self-register`, fd);
+      console.log('🔍 TEAM OWNER CREATE TEAM - API Response:', r.data);
+      console.log('🔍 TEAM OWNER CREATE TEAM - r.data.team:', r.data.team);
+      console.log('🔍 TEAM OWNER CREATE TEAM - r.data.team._id:', r.data.team?._id);
+
       toast.success('Team created! You are in the auction.');
-      setCode(''); 
+      setCode('');
       setPreviewAuction(null);
       // FIX: server just promoted this account to "team_owner" — refresh
       // the cached session immediately so the bid button shows up without
       // requiring a re-login.
       refetch();
-      
+
       // Log activity to admin
+      console.log('🔍 TEAM OWNER CREATE TEAM - Logging activity with team:', r.data.team);
       await logActivityToAdmin('team_join', `Team joined auction: ${r.data.team.name}`, {
         teamId: r.data.team._id,
         teamName: r.data.team.name,
@@ -330,7 +349,7 @@ export default function TeamOwnerDashboard() {
         auctionName: previewAuction.name,
         userId: currentUser.id
       });
-      
+
       await bootstrap();
     } catch(e:any){ 
       toast.error(e.response?.data?.error||'Failed'); 
