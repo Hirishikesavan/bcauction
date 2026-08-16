@@ -44,6 +44,22 @@ async function loadOwnedTeam(req, res) {
   return team;
 }
 
+// Get teams by participantId (for no-auth mode)
+router.get('/by-owner/:participantId', async (req, res) => {
+  try {
+    const { participantId } = req.params;
+    console.log('🔍 GET /teams/by-owner - participantId:', participantId);
+    
+    const teams = await Team.find({ ownerId: participantId });
+    console.log('🔍 GET /teams/by-owner - Found teams:', teams.length);
+    
+    res.json({ success: true, teams });
+  } catch (e) {
+    console.error('🔍 GET /teams/by-owner - Error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Team Owner updates their own team profile (name, short name, city, color, logo)
 router.put('/:teamId', upload.single('logo'), async (req, res) => {
   try {

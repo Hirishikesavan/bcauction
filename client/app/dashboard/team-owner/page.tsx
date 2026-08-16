@@ -140,36 +140,31 @@ export default function TeamOwnerDashboard() {
 
   const bootstrap = async () => {
     console.log('Team Owner Dashboard bootstrap started');
+    console.log('🔍 BOOTSTRAP - participantId:', participantId);
     try {
-      // Skip API calls if no authenticated user (authentication removed)
-      if (!user) {
-        console.log('No authenticated user - skipping API calls');
-        setAllAuctions([]);
-        setMyTeams([]);
-        setView('home');
-        setInitialLoad(false);
-        return;
-      }
-
-      // Get fresh data from backend
-      console.log('Fetching auctions from backend...');
-      const aRes = await api.get('/auctions');
-      setAllAuctions(aRes.data.auctions);
-      console.log('Fetched auctions:', aRes.data.auctions.length);
-
-      console.log('Fetching teams for each auction...');
+      // No-auth mode: fetch teams using participantId instead of user authentication
+      console.log('🔍 BOOTSTRAP - Fetching teams for participantId:', participantId);
+      
+      // Fetch teams where ownerId matches participantId
+      const teamsRes = await api.get(`/teams/by-owner/${participantId}`);
+      console.log('🔍 BOOTSTRAP - Teams response:', teamsRes.data);
+      
+      const teams = teamsRes.data.teams || [];
+      console.log('🔍 BOOTSTRAP - Fetched teams:', teams.length);
+      
+      // For each team, fetch the auction details
       const rows = await Promise.all(
-        aRes.data.auctions.map((a:any)=>
-          api.get(`/auctions/${a._id}/my-team`)
-            .then(r=>({...r.data.team, auction:a, players:r.data.players}))
-            .catch((err)=>{
-              console.log('Failed to fetch team for auction:', a._id, err);
+        teams.map((team:any) =>
+          api.get(`/auctions/${team.auctionId}`)
+            .then(r => ({ ...team, auction: r.data.auction || r.data }))
+            .catch((err) => {
+              console.log('Failed to fetch auction for team:', team.auctionId, err);
               return null;
             })
         )
       );
       const backendTeams = rows.filter(Boolean);
-      console.log('Fetched backend teams:', backendTeams.length);
+      console.log('🔍 BOOTSTRAP - Teams with auction data:', backendTeams.length);
 
       // Use only backend data - no localStorage to prevent cross-user data leakage
       setMyTeams(backendTeams);
@@ -182,13 +177,13 @@ export default function TeamOwnerDashboard() {
       } else {
         setView('home');
       }
-      console.log('Bootstrap completed successfully');
+      console.log('🔍 BOOTSTRAP - Completed successfully');
     } catch (err) {
-      console.error('Bootstrap failed:', err);
+      console.error('🔍 BOOTSTRAP - Failed:', err);
       setView('home');
     }
     finally {
-      console.log('Setting initialLoad to false');
+      console.log('🔍 BOOTSTRAP - Setting initialLoad to false');
       setInitialLoad(false);
     }
   };
