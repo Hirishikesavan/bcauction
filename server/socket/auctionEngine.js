@@ -462,8 +462,8 @@ module.exports = (io) => {
         return socket.emit('bidError', { message: 'Only team owners can use RTM' });
 
       const st = getState(auctionId);
-      // Convert better-auth string ID to ObjectId for MongoDB query
-      const userId = new mongoose.Types.ObjectId(socketUser.id);
+      // No-auth mode - use string ID directly (not ObjectId conversion)
+      const userId = String(socketUser.id);
       const auctionIdStr = String(auctionId);
       const [team, player, auction] = await Promise.all([
         Team.findOne({ auctionId: auctionIdStr, ownerId: userId }),

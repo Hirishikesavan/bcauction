@@ -100,17 +100,17 @@ router.post('/join-by-code', async (req, res) => {
     if (teamCount >= auction.maxTeams) return res.status(400).json({ error: 'Auction full' });
 
     // Debug logging to identify user ID issues
-    console.log('🔍 Join-by-code debug:');
+    console.log('🔍 Join-by-code debug (no-auth mode):');
     console.log('  User ID:', req.user.id, 'Type:', typeof req.user.id);
     console.log('  User Email:', req.user.email);
     console.log('  Auction ID:', auction._id);
     console.log('  Auction Name:', auction.name);
 
-    // Convert better-auth string ID to ObjectId for MongoDB query
-    const userId = new mongoose.Types.ObjectId(req.user.id);
+    // No-auth mode - use string ID directly (not ObjectId conversion)
+    const userId = String(req.user.id);
     const auctionIdStr = String(auction._id);
 
-    console.log('  Converted userId to ObjectId:', userId, 'Type:', typeof userId);
+    console.log('  Using userId as string:', userId, 'Type:', typeof userId);
 
     // Check ALL teams in this auction for debugging
     const allTeams = await Team.find({ auctionId: auctionIdStr });
@@ -121,9 +121,9 @@ router.post('/join-by-code', async (req, res) => {
       ownerIdType: typeof t.ownerId
     })));
 
-    const existing = await Team.findOne({ 
-      auctionId: auctionIdStr, 
-      ownerId: userId 
+    const existing = await Team.findOne({
+      auctionId: auctionIdStr,
+      ownerId: userId
     });
 
     if (existing) {
@@ -534,7 +534,8 @@ router.get('/:id/teams', optionalAuth, async (req, res) => {
     // which is intentional: lobby/poster/viewer/organizer screens need to show all teams.
     const role = req.user?.role;
     if (req.user && role === 'team_owner') {
-      const userId = new mongoose.Types.ObjectId(req.user.id);
+      // No-auth mode - use string ID directly (not ObjectId conversion)
+      const userId = String(req.user.id);
       const team = await Team.findOne({ auctionId: req.params.id, ownerId: userId }).populate('ownerId','name email');
       return res.json({ success: true, teams: team ? [team] : [] });
     }
@@ -647,16 +648,16 @@ router.post('/:id/teams', upload.single('logo'), async (req, res) => {
     if (!auction) return res.status(404).json({ error: 'Auction not found' });
     
     const { name, shortName, ownerName, city, primaryColor, maxPlayers, ownerId } = req.body;
-    
+
     // Require ownerId to prevent creating teams without owners
     if (!ownerId) {
       return res.status(400).json({ error: 'ownerId is required. Please assign a team owner to this team.' });
     }
-    
+
     const team = new Team({
       auctionId: req.params.id,
-      ownerId: new mongoose.Types.ObjectId(ownerId),
-      name, 
+      ownerId: String(ownerId), // No-auth mode - use string ID directly (Team schema expects String)
+      name,
       shortName: shortName.toUpperCase().slice(0,4),
       ownerName: ownerName || '',
       city: city || '',
