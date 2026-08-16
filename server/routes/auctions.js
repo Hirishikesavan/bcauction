@@ -91,20 +91,39 @@ router.get('/by-code/:code', async (req, res) => {
 
 router.post('/join-by-code', async (req, res) => {
   try {
+    console.log('🔍 JOIN-BY-CODE START');
+    console.log('🔍 Request body:', req.body);
+    console.log('🔍 req.user:', req.user);
+    console.log('🔍 req.user exists:', !!req.user);
+
     const { code } = req.body;
     if (!code) return res.status(400).json({ error: 'Join code required' });
+
+    console.log('🔍 Join code received:', code);
+
     const auction = await Auction.findOne({ joinCode: code.toUpperCase().trim() });
     if (!auction) return res.status(404).json({ error: 'Invalid join code' });
     if (auction.status === 'completed') return res.status(400).json({ error: 'Auction ended' });
     const teamCount = await Team.countDocuments({ auctionId: auction._id });
     if (teamCount >= auction.maxTeams) return res.status(400).json({ error: 'Auction full' });
 
+    console.log('🔍 Auction found:', auction._id);
+    console.log('🔍 Auction name:', auction.name);
+
     // Debug logging to identify user ID issues
     console.log('🔍 Join-by-code debug (no-auth mode):');
-    console.log('  User ID:', req.user.id, 'Type:', typeof req.user.id);
-    console.log('  User Email:', req.user.email);
+    console.log('  req.user:', req.user);
+    console.log('  req.user.id:', req.user?.id, 'Type:', typeof req.user?.id);
+    console.log('  req.user.email:', req.user?.email);
+    console.log('  req.user.role:', req.user?.role);
     console.log('  Auction ID:', auction._id);
     console.log('  Auction Name:', auction.name);
+
+    if (!req.user || !req.user.id) {
+      console.error('🔍 CRITICAL: req.user or req.user.id is undefined!');
+      console.error('🔍 req.user:', req.user);
+      return res.status(500).json({ error: 'User authentication error - req.user.id is undefined' });
+    }
 
     // No-auth mode - use string ID directly (not ObjectId conversion)
     const userId = String(req.user.id);
@@ -140,7 +159,12 @@ router.post('/join-by-code', async (req, res) => {
       teamOwnerFeeRequired: auction.teamOwnerFeeEnabled && auction.teamOwnerFee > 0,
       teamOwnerFee: auction.teamOwnerFeeEnabled ? auction.teamOwnerFee : 0,
     });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    console.error('🔍 JOIN-BY-CODE ERROR:', e);
+    console.error('🔍 JOIN-BY-CODE STACK:', e?.stack);
+    console.error('🔍 JOIN-BY-CODE MESSAGE:', e?.message);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // My auctions
