@@ -249,7 +249,7 @@ app.post('/api/user/set-role', optionalAuth, async (req, res) => {
 });
 
 // ── Fix Admin Role (manual fix for existing admin accounts) ─
-app.post('/api/user/fix-admin-role', authMiddleware, async (req, res) => {
+app.post('/api/user/fix-admin-role', optionalAuth, async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
     const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'hirishi2020@gmail.com').toLowerCase();
@@ -288,7 +288,7 @@ app.post('/api/user/fix-admin-role', authMiddleware, async (req, res) => {
 // real, working route, following the same direct-Mongo pattern as
 // set-role above (Better Auth's updateUser endpoint refuses email
 // changes outright, so we update the 'user' collection directly).
-app.put('/api/user/profile', authMiddleware, async (req, res) => {
+app.put('/api/user/profile', optionalAuth, async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
     const { name, email } = req.body;
@@ -340,7 +340,7 @@ app.put('/api/user/profile', authMiddleware, async (req, res) => {
 });
 
 // ── Change Password ──────────────────────────────────────────
-app.put('/api/user/change-password', authMiddleware, async (req, res) => {
+app.put('/api/user/change-password', optionalAuth, async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
     const { currentPassword, newPassword } = req.body;
@@ -359,7 +359,7 @@ app.put('/api/user/change-password', authMiddleware, async (req, res) => {
 });
 
 // ── Delete Account ────────────────────────────────────────────
-app.delete('/api/user/account', authMiddleware, async (req, res) => {
+app.delete('/api/user/account', optionalAuth, async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
     const { MongoClient } = require('mongodb');
@@ -420,7 +420,7 @@ app.post('/api/emergency-fix-admin', async (req, res) => {
 });
 
 // ── Get current session user ───────────────────────────
-app.get('/api/user/me', authMiddleware, (req, res) => {
+app.get('/api/user/me', optionalAuth, (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
   return res.json({ success: true, user: req.user });
 });
@@ -484,7 +484,7 @@ app.get('/debug-google', (req, res) => {
 // When an existing email/password user tries to sign in with Google, Better Auth
 // requires emailVerified=true to auto-link accounts. This endpoint lets users
 // (or the startup script) patch their own emailVerified status.
-app.post('/api/user/force-verify-email', authMiddleware, async (req, res) => {
+app.post('/api/user/force-verify-email', optionalAuth, async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
     const { getDb } = require('./lib/auth');
