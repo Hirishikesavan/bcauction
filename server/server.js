@@ -201,7 +201,7 @@ require('./models/Sponsor');
 require('./models/CustomBranding');
 
 // ── Set Role (after login/OAuth — user picks their role) ─
-app.post('/api/user/set-role', authMiddleware, async (req, res) => {
+app.post('/api/user/set-role', optionalAuth, async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
     const { role } = req.body;
