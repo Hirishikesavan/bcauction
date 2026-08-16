@@ -188,7 +188,7 @@ export default function TeamOwnerDashboard() {
       if (r.data.alreadyJoined) { toast('Already joined this auction!',); await bootstrap(); }
       else {
         setPreviewAuction(r.data.auction);
-        setTf(p=>({...p,ownerName:user?.name||''}));
+        setTf(p=>({...p,ownerName:currentUser.name||''}));
         // Fetch fee/payment setup for this auction's organizer (Razorpay, QR, UPI)
         try {
           const feeR = await api.post('/payment/create-team-fee-order', { auctionId: r.data.auction?._id });
@@ -233,7 +233,7 @@ export default function TeamOwnerDashboard() {
         if (r.data.alreadyJoined) { toast('Already joined this auction!', ); bootstrap(); }
         else {
           setPreviewAuction(r.data.auction);
-          setTf(p => ({ ...p, ownerName: user?.name || '' }));
+          setTf(p => ({ ...p, ownerName: currentUser.name || '' }));
           setTeamOwnerFeeData({
             required: r.data.teamOwnerFeeRequired || false,
             amount: (r.data.teamOwnerFee || 0) * 100,
@@ -262,7 +262,7 @@ export default function TeamOwnerDashboard() {
       name: previewAuction?.name || 'Beast Cricket Auction',
       description: 'Team Owner Entry Fee',
       order_id: teamOwnerFeeData.orderId,
-      prefill: { name: user?.name || '' },
+      prefill: { name: currentUser.name || '' },
       theme: { color: '#f59e0b' },
       modal: { ondismiss: () => setPayingFee(false) },
       handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
@@ -325,10 +325,10 @@ export default function TeamOwnerDashboard() {
         teamId: r.data.team._id,
         teamName: r.data.team.name,
         teamShortName: r.data.team.shortName,
-        ownerName: user?.name,
+        ownerName: currentUser.name,
         auctionId: previewAuction._id,
         auctionName: previewAuction.name,
-        userId: user?.id
+        userId: currentUser.id
       });
       
       await bootstrap();
@@ -539,7 +539,7 @@ export default function TeamOwnerDashboard() {
               <button onClick={()=>setView('enter-code')} className="border border-primary/40 text-primary font-heading uppercase tracking-wider hover:bg-primary/10 transition-all text-xs font-bold px-4 py-2 rounded-lg inline-flex items-center gap-1.5"><Target size={14} aria-hidden="true" /> Join Auction</button>
               <div className="hidden sm:flex items-center gap-2 bg-glass-premium rounded-full px-4 py-2">
                 <Trophy size={14} style={{color:'hsl(45 100% 51%)'}} aria-hidden="true" />
-                <span className="text-white text-xs font-semibold" style={{textShadow:'0 0 8px rgba(0,0,0,0.9)', fontWeight:'700'}}>{user?.name}</span>
+                <span className="text-white text-xs font-semibold" style={{textShadow:'0 0 8px rgba(0,0,0,0.9)', fontWeight:'700'}}>{currentUser.name}</span>
               </div>
               <a href="/profile" className="text-white hover:text-white text-xs font-bold px-3 py-2 glass border border-border rounded-lg transition-all inline-flex items-center gap-1.5" style={{textShadow:'0 0 8px rgba(0,0,0,0.9)', fontWeight:'700'}}><UserCircle size={14} aria-hidden="true" /> Profile</a>
               <button onClick={() => window.location.href = '/dashboard/team-owner'} className="px-3 py-2 rounded-lg text-xs font-heading uppercase tracking-wider text-white hover:text-primary hover:bg-primary/10 transition-all border border-border/40 mr-1 inline-flex items-center gap-1.5" style={{textShadow:'0 0 8px rgba(0,0,0,0.9)', fontWeight:'700'}}><Home size={14} aria-hidden="true" /> Team Home</button>
@@ -1248,7 +1248,7 @@ export default function TeamOwnerDashboard() {
                         await generateSquadBookPdf({
                           auctionName: selTeam.auction?.name || 'Beast Cricket League',
                           teamReports: [{
-                            team: { name: selTeam.name, primaryColor: selTeam.primaryColor, logo: selTeam.logo, ownerName: selTeam.ownerName || user?.name },
+                            team: { name: selTeam.name, primaryColor: selTeam.primaryColor, logo: selTeam.logo, ownerName: selTeam.ownerName || currentUser.name },
                             squad,
                             squadSize: squad.length,
                             totalSpent: selTeam.initialPurse - selTeam.purse,
